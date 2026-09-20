@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Tierra 3D — WebGL</title>
+  <link rel="preconnect" href="https://cdn.jsdelivr.net" />
+  <link rel="preconnect" href="https://raw.githubusercontent.com" />
+  <link rel="stylesheet" href="css/style.css" />
+  <script type="importmap">
+    {
+      "imports": {
+        "three": "https://cdn.jsdelivr.net/npm/three@0.165.0/build/three.module.js",
+        "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.165.0/examples/jsm/"
+      }
+    }
+  </script>
+</head>
+<body>
+  <!-- Pantalla de carga -->
+  <div id="loader">
+    <div class="loader-inner">
+      <div class="loader-ring"></div>
+      <h1>TIERRA</h1>
+      <p id="loader-status">Cargando texturas…</p>
+      <div class="loader-bar"><div id="loader-progress"></div></div>
+    </div>
+  </div>
+
+  <!-- Canvas -->
+  <canvas id="scene"></canvas>
+
+  <!-- UI -->
+  <header id="hud-top">
+    <div class="brand">
+      <span class="dot"></span> TIERRA <span class="thin">/ 3D</span>
+    </div>
+    <div class="stats">
+      <span id="fps">— fps</span>
+    </div>
+  </header>
+
+  <aside id="panel" class="open">
+    <button id="panel-toggle" title="Mostrar / ocultar panel">⚙</button>
+    <div class="panel-body">
+      <h2>Controles</h2>
+
+      <div class="control">
+        <label>Rotación <span id="val-rotation">1.0×</span></label>
+        <input type="range" id="ctl-rotation" min="0" max="5" step="0.1" value="1" />
+      </div>
+
+      <div class="control">
+        <label>Velocidad nubes <span id="val-clouds-speed">1.3×</span></label>
+        <input type="range" id="ctl-clouds-speed" min="0" max="5" step="0.1" value="1.3" />
+      </div>
+
+      <div class="control">
+        <label>Hora solar <span id="val-sun">auto</span></label>
+        <input type="range" id="ctl-sun" min="0" max="360" step="1" value="0" />
+        <div class="row">
+          <label class="check"><input type="checkbox" id="ctl-sun-auto" checked /> Órbita solar automática</label>
+        </div>
+      </div>
+
+      <div class="control">
+        <label>Intensidad atmósfera <span id="val-atmo">0.7</span></label>
+        <input type="range" id="ctl-atmo" min="0" max="2" step="0.05" value="0.7" />
+      </div>
+
+      <div class="control">
+        <label>Bloom <span id="val-bloom">0.15</span></label>
+        <input type="range" id="ctl-bloom" min="0" max="1.5" step="0.05" value="0.15" />
+      </div>
+
+      <div class="control toggles">
+        <label class="check"><input type="checkbox" id="ctl-clouds" checked /> Nubes</label>
+        <label class="check"><input type="checkbox" id="ctl-stars" checked /> Estrellas</label>
+        <label class="check"><input type="checkbox" id="ctl-atmosphere" checked /> Atmósfera</label>
+      </div>
+
+      <button id="btn-reset" class="btn">Reiniciar cámara</button>
+      <a href="solar.html" class="btn link">Sistema Solar →</a>
+    </div>
+  </aside>
+
+  <footer id="hud-bottom">
+    <span>Arrastra para rotar · Rueda para zoom</span>
+  </footer>
+
+  <script type="module" src="js/main.js"></script>
+</body>
+</html>

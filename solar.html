@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Sistema Solar</title>
+  <link rel="preconnect" href="https://cdn.jsdelivr.net" />
+  <link rel="stylesheet" href="css/solar.css" />
+  <script type="importmap">
+    {
+      "imports": {
+        "three": "https://cdn.jsdelivr.net/npm/three@0.165.0/build/three.module.js",
+        "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.165.0/examples/jsm/"
+      }
+    }
+  </script>
+</head>
+<body>
+  <div id="loader">
+    <div class="loader-inner">
+      <h1>Sistema Solar</h1>
+      <div class="loader-bar"><div id="loader-progress"></div></div>
+      <p id="loader-status">cargando</p>
+    </div>
+  </div>
+
+  <canvas id="scene"></canvas>
+  <div id="labels"></div>
+
+  <nav id="topbar">
+    <span class="title">Sistema Solar</span>
+    <div class="topbar-right">
+      <a href="index.html">Tierra</a>
+      <span id="fps"></span>
+    </div>
+  </nav>
+
+  <aside id="sidebar">
+    <div class="search-wrap">
+      <svg class="search-icon" viewBox="0 0 16 16" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.4">
+        <circle cx="7" cy="7" r="5"/><line x1="11" y1="11" x2="15" y2="15"/>
+      </svg>
+      <input type="text" id="search" placeholder="Buscar planeta o luna" autocomplete="off" spellcheck="false" />
+      <div id="search-results" hidden></div>
+    </div>
+
+    <div class="section">
+      <span class="section-title">Tiempo</span>
+      <div id="speed-control" class="speed-control"></div>
+    </div>
+
+    <div class="section">
+      <span class="section-title">Capas</span>
+      <label><input type="checkbox" id="ctl-orbits" checked /><span>Órbitas</span></label>
+      <label><input type="checkbox" id="ctl-labels" checked /><span>Etiquetas</span></label>
+      <label><input type="checkbox" id="ctl-belt" checked /><span>Cinturón de asteroides</span></label>
+      <label><input type="checkbox" id="ctl-kuiper" checked /><span>Cinturón de Kuiper</span></label>
+      <label><input type="checkbox" id="ctl-minor-moons" checked /><span>Lunas menores</span></label>
+    </div>
+
+    <div class="section grow">
+      <span class="section-title">Cuerpos</span>
+      <div id="planet-list"></div>
+    </div>
+
+    <button id="btn-overview">Vista general</button>
+
+    <p class="scale-note">Tamaños a escala real entre planetas y lunas.
+    Distancias comprimidas y Sol reducido para poder navegar.</p>
+  </aside>
+
+  <article id="info-card" hidden>
+    <button id="info-close" aria-label="Cerrar">×</button>
+    <span id="info-type"></span>
+    <h2 id="info-name"></h2>
+    <p id="info-desc"></p>
+    <dl id="info-data"></dl>
+    <ul id="info-facts"></ul>
+  </article>
+
+  <footer id="hint">arrastrar para rotar · rueda para acercar · click en un cuerpo para seguirlo</footer>
+
+  <script type="module" src="js/solar.js"></script>
+</body>
+</html>

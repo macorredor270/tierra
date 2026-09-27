@@ -256,6 +256,21 @@ export class Engine {
     if (this.flight) this.flight.fromDist = d;
   }
 
+  /**
+   * Salta a un instante (en pausa o a la velocidad dada), enfoca un cuerpo y, si se pide, coloca
+   * la cámara en la dirección de otro cuerpo (0 = el Sol, para ver la cara iluminada).
+   */
+  goTo(o: { ms?: number; focus: number; dist?: number; from?: number; speed?: number; animate?: boolean }): void {
+    if (o.ms != null) {
+      this.clock.jumpTo(o.ms);
+      if (o.speed && o.speed > 0) this.clock.setSpeed(o.speed);
+      else this.clock.paused = true;
+    }
+    this.update(true);
+    this.focusOn(o.focus, o.dist, o.animate ?? true);
+    if (o.from != null && o.from !== o.focus) this.viewFrom(o.from, o.from !== 0);
+  }
+
   overview(): void {
     this.focusOn(0, 4 * AU);
   }
@@ -607,7 +622,7 @@ export class Engine {
     for (const { body, line } of this.craftPaths) {
       line.position.set(-fw[0], -fw[1], -fw[2]);
       line.visible = this.layers.crafts && this.layers.orbits;
-      (line.material as THREE.LineBasicMaterial).opacity = body.index === this.focus ? 0.8 : 0.3;
+      (line.material as THREE.LineBasicMaterial).opacity = body.index === this.focus ? 0.8 : 0.08;
     }
     for (const { body, line } of this.orbitLines) {
       const par = body.parent;

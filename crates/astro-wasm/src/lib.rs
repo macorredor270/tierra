@@ -4,6 +4,7 @@
 //! Coordenadas de escena (las de Three.js, Y arriba): `(x, y, z)_escena = (x, z, −y)_eclíptica`,
 //! en kilómetros, heliocéntricas.
 
+use astro_core::events::{find_events, EventKind};
 use astro_core::frames::add;
 use astro_core::moon_meeus;
 use astro_core::moons::{MoonElements, RefPlane};
@@ -220,6 +221,35 @@ impl Solar {
 
     pub fn small_ptr(&self) -> *const f32 {
         self.small_out.as_ptr()
+    }
+
+    /// Eventos astronómicos entre dos fechas (días julianos UTC) como JSON:
+    /// `[{"jd": día juliano UTC, "type": ..., ...}]`. Los planetas van con su índice de cuerpo.
+    pub fn events_json(jd_start_utc: f64, jd_end_utc: f64) -> String {
+        let events = find_events(tdb_from_utc(jd_start_utc), tdb_from_utc(jd_end_utc));
+        let body = |p: Planet| p as usize + 1;
+        let items: Vec<String> = events
+            .iter()
+            .map(|e| {
+                let jd = e.jd_tdb - (tdb_from_utc(0.0) - 0.0);
+                match &e.kind {
+                    EventKind::SolarEclipse { kind, gamma } => {
+                        format!(r#"{{"jd":{jd:.6},"type":"solar","kind":"{kind}","gamma":{gamma:.4}}}"#)
+                    }
+                    EventKind::LunarEclipse { kind, umbral_magnitude } => {
+                        format!(r#"{{"jd":{jd:.6},"type":"lunar","kind":"{kind}","magnitude":{umbral_magnitude:.3}}}"#)
+                    }
+                    EventKind::Opposition { planet } => {
+                        format!(r#"{{"jd":{jd:.6},"type":"opposition","body":{}}}"#, body(*planet))
+                    }
+                    EventKind::GreatestElongation { planet, degrees, east } => format!(
+                        r#"{{"jd":{jd:.6},"type":"elongation","body":{},"degrees":{degrees:.1},"east":{east}}}"#,
+                        body(*planet)
+                    ),
+                }
+            })
+            .collect();
+        format!("[{}]", items.join(","))
     }
 }
 

@@ -10,6 +10,7 @@
 //! - Orientación: Archinal et al. 2018, "Report of the IAU WGCCRE: 2015" (CeMDA 130:22).
 //! - Cuerpos pequeños: elementos osculantes de JPL SBDB, propagados como problema de dos cuerpos.
 
+pub mod events;
 pub mod frames;
 pub mod kepler;
 pub mod moon_meeus;

@@ -142,3 +142,12 @@ function shuffleRecords(data: Float32Array, stride: number): Float32Array {
   idx.forEach((src, dst) => out.set(data.subarray(src * stride, (src + 1) * stride), dst * stride));
   return out;
 }
+
+const EN = ['sun', 'mercury', 'venus', 'earth', 'mars', 'jupiter', 'saturn', 'uranus', 'neptune', 'ceres', 'pluto', 'eris', 'makemake', 'haumea'];
+export const norm = (s: string) => s.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().trim();
+
+/** Busca un cuerpo por nombre en español o inglés, con o sin tildes ("Plutón", "pluto", "pluton"). */
+export function findBody(world: World, name: string) {
+  const n = norm(name);
+  return world.bodies.find((b) => norm(b.info.name) === n || (b.jplName && norm(b.jplName) === n) || EN[b.index] === n);
+}

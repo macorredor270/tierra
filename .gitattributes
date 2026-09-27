@@ -1,0 +1,7 @@
+# Estadísticas de lenguajes de GitHub (Linguist)
+web/src/wasm/** linguist-generated=true
+web/public/data/** linguist-generated=true
+crates/astro-core/tests/fixtures/** linguist-generated=true
+package-lock.json linguist-generated=true
+web/public/textures/** binary
+*.wasm binary

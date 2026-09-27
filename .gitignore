@@ -4,3 +4,5 @@ target/
 web/src/wasm/
 .texture-cache/
 __pycache__/
+test-results/
+playwright-report/

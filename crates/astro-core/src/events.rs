@@ -16,10 +16,22 @@ const R_MOON: f64 = 1_737.4;
 
 #[derive(Clone, Debug, PartialEq)]
 pub enum EventKind {
-    SolarEclipse { kind: &'static str, gamma: f64 },
-    LunarEclipse { kind: &'static str, umbral_magnitude: f64 },
-    Opposition { planet: Planet },
-    GreatestElongation { planet: Planet, degrees: f64, east: bool },
+    SolarEclipse {
+        kind: &'static str,
+        gamma: f64,
+    },
+    LunarEclipse {
+        kind: &'static str,
+        umbral_magnitude: f64,
+    },
+    Opposition {
+        planet: Planet,
+    },
+    GreatestElongation {
+        planet: Planet,
+        degrees: f64,
+        east: bool,
+    },
 }
 
 #[derive(Clone, Debug)]
@@ -37,7 +49,10 @@ struct Geo {
 fn geo(jd: f64) -> Geo {
     let moon = moon_meeus::geocentric_km(jd);
     let earth = earth_heliocentric_km(heliocentric_km(Planet::EarthMoonBary, jd), moon);
-    Geo { sun: scale(earth, -1.0), moon }
+    Geo {
+        sun: scale(earth, -1.0),
+        moon,
+    }
 }
 
 fn lon(v: [f64; 3]) -> f64 {
@@ -116,7 +131,11 @@ fn shadow_axis_distance(jd: f64) -> f64 {
     let axis = sub(g.moon, g.sun);
     let dir = scale(axis, 1.0 / norm(axis));
     let t = -(g.moon[0] * dir[0] + g.moon[1] * dir[1] + g.moon[2] * dir[2]);
-    let p = [g.moon[0] + dir[0] * t, g.moon[1] + dir[1] * t, g.moon[2] + dir[2] * t];
+    let p = [
+        g.moon[0] + dir[0] * t,
+        g.moon[1] + dir[1] * t,
+        g.moon[2] + dir[2] * t,
+    ];
     norm(p).copysign(p[2])
 }
 
@@ -139,11 +158,18 @@ fn solar_eclipses(start: f64, end: f64, out: &mut Vec<Event>) {
         let moon_ang = (R_MOON / d_moon).asin();
         let sun_ang = (R_SUN / norm(g.sun)).asin();
         let kind = if gamma.abs() < 0.997 {
-            if moon_ang > sun_ang { "total" } else { "anular" }
+            if moon_ang > sun_ang {
+                "total"
+            } else {
+                "anular"
+            }
         } else {
             "parcial"
         };
-        out.push(Event { jd_tdb: t, kind: EventKind::SolarEclipse { kind, gamma } });
+        out.push(Event {
+            jd_tdb: t,
+            kind: EventKind::SolarEclipse { kind, gamma },
+        });
     }
 }
 
@@ -179,7 +205,13 @@ fn lunar_eclipses(start: f64, end: f64, out: &mut Vec<Event>) {
         } else {
             continue;
         };
-        out.push(Event { jd_tdb: t, kind: EventKind::LunarEclipse { kind, umbral_magnitude: umag } });
+        out.push(Event {
+            jd_tdb: t,
+            kind: EventKind::LunarEclipse {
+                kind,
+                umbral_magnitude: umag,
+            },
+        });
     }
 }
 
@@ -190,13 +222,22 @@ fn geocentric_planet(p: Planet, jd: f64) -> ([f64; 3], [f64; 3]) {
 }
 
 fn oppositions(start: f64, end: f64, out: &mut Vec<Event>) {
-    for p in [Planet::Mars, Planet::Jupiter, Planet::Saturn, Planet::Uranus, Planet::Neptune] {
+    for p in [
+        Planet::Mars,
+        Planet::Jupiter,
+        Planet::Saturn,
+        Planet::Uranus,
+        Planet::Neptune,
+    ] {
         let phase = |t: f64| {
             let (pl, sun) = geocentric_planet(p, t);
             wrap(lon(pl) - lon(sun) - std::f64::consts::PI)
         };
         for t in crossings(start, end, 2.0, &phase) {
-            out.push(Event { jd_tdb: t, kind: EventKind::Opposition { planet: p } });
+            out.push(Event {
+                jd_tdb: t,
+                kind: EventKind::Opposition { planet: p },
+            });
         }
     }
 }
@@ -221,7 +262,11 @@ fn elongations(start: f64, end: f64, out: &mut Vec<Event>) {
                 if e.abs().to_degrees() > 15.0 {
                     out.push(Event {
                         jd_tdb: tm,
-                        kind: EventKind::GreatestElongation { planet: p, degrees: e.abs().to_degrees(), east: e > 0.0 },
+                        kind: EventKind::GreatestElongation {
+                            planet: p,
+                            degrees: e.abs().to_degrees(),
+                            east: e > 0.0,
+                        },
                     });
                 }
             }
@@ -250,7 +295,9 @@ mod tests {
         let (y, m) = if m <= 2 { (y - 1, m + 12) } else { (y, m) };
         let a = (y as f64 / 100.0).floor();
         let b = 2.0 - a + (a / 4.0).floor();
-        (365.25 * (y as f64 + 4716.0)).floor() + (30.6001 * (m as f64 + 1.0)).floor() + d as f64 + b - 1524.5 + h / 24.0
+        (365.25 * (y as f64 + 4716.0)).floor() + (30.6001 * (m as f64 + 1.0)).floor() + d as f64 + b
+            - 1524.5
+            + h / 24.0
     }
 
     #[test]
@@ -267,14 +314,21 @@ mod tests {
             (jd(2027, 8, 2, 10.0 + 8.0 / 60.0), 0.1421, "total"),
         ];
         let found = find_events(jd(2024, 1, 1, 0.0), jd(2027, 12, 31, 0.0));
-        let solar: Vec<_> = found.iter().filter_map(|e| match e.kind {
-            EventKind::SolarEclipse { kind, gamma } => Some((e.jd_tdb, gamma, kind)),
-            _ => None,
-        }).collect();
+        let solar: Vec<_> = found
+            .iter()
+            .filter_map(|e| match e.kind {
+                EventKind::SolarEclipse { kind, gamma } => Some((e.jd_tdb, gamma, kind)),
+                _ => None,
+            })
+            .collect();
         assert_eq!(solar.len(), nasa.len(), "{solar:?}");
         for ((t, g, k), (nt, ng, nk)) in solar.iter().zip(nasa.iter()) {
             println!("{k} {t:.4} γ={g:.4}  (NASA {nk} {nt:.4} γ={ng})");
-            assert!((t - nt).abs() * 1440.0 < 10.0, "hora: {} min", (t - nt) * 1440.0);
+            assert!(
+                (t - nt).abs() * 1440.0 < 10.0,
+                "hora: {} min",
+                (t - nt) * 1440.0
+            );
             assert!((g - ng).abs() < 0.01, "γ {g} vs {ng}");
             assert_eq!(k, nk);
         }
@@ -283,10 +337,13 @@ mod tests {
     #[test]
     fn eclipses_lunares_2025_2026_como_nasa() {
         let found = find_events(jd(2025, 1, 1, 0.0), jd(2026, 12, 31, 0.0));
-        let lunar: Vec<_> = found.iter().filter_map(|e| match e.kind {
-            EventKind::LunarEclipse { kind, .. } => Some((e.jd_tdb, kind)),
-            _ => None,
-        }).collect();
+        let lunar: Vec<_> = found
+            .iter()
+            .filter_map(|e| match e.kind {
+                EventKind::LunarEclipse { kind, .. } => Some((e.jd_tdb, kind)),
+                _ => None,
+            })
+            .collect();
         // NASA: 2025-03-14 total, 2025-09-07 total, 2026-03-03 total, 2026-08-28 parcial
         let nasa = [
             (jd(2025, 3, 14, 6.0 + 60.0 / 60.0), "total"),
@@ -306,7 +363,16 @@ mod tests {
     fn oposicion_de_marte_2025() {
         // 16 de enero de 2025, 02:32 UT
         let ev = find_events(jd(2025, 1, 1, 0.0), jd(2025, 2, 1, 0.0));
-        let t = ev.iter().find(|e| e.kind == EventKind::Opposition { planet: Planet::Mars }).unwrap().jd_tdb;
+        let t = ev
+            .iter()
+            .find(|e| {
+                e.kind
+                    == EventKind::Opposition {
+                        planet: Planet::Mars,
+                    }
+            })
+            .unwrap()
+            .jd_tdb;
         assert!((t - jd(2025, 1, 16, 2.5)).abs() < 0.2, "{t}");
     }
 }

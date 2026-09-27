@@ -19,8 +19,12 @@ fn xyz(v: &Value) -> [f64; 3] {
 
 /// Error angular visto desde el centro (grados) y error relativo de distancia.
 fn errors(ours: [f64; 3], truth: [f64; 3]) -> (f64, f64) {
-    let dot = (ours[0] * truth[0] + ours[1] * truth[1] + ours[2] * truth[2]) / (norm(ours) * norm(truth));
-    (dot.clamp(-1.0, 1.0).acos().to_degrees(), (norm(ours) - norm(truth)).abs() / norm(truth))
+    let dot =
+        (ours[0] * truth[0] + ours[1] * truth[1] + ours[2] * truth[2]) / (norm(ours) * norm(truth));
+    (
+        dot.clamp(-1.0, 1.0).acos().to_degrees(),
+        (norm(ours) - norm(truth)).abs() / norm(truth),
+    )
 }
 
 fn moon_by_code(code: u64) -> MoonElements {
@@ -36,7 +40,10 @@ fn moon_by_code(code: u64) -> MoonElements {
         plane: if m["frame"] == "ecliptic" {
             RefPlane::Ecliptic
         } else {
-            RefPlane::Pole { ra_deg: f("poleRa"), dec_deg: f("poleDec") }
+            RefPlane::Pole {
+                ra_deg: f("poleRa"),
+                dec_deg: f("poleDec"),
+            }
         },
         epoch_jd: f("epoch"),
         a_km: f("a"),
@@ -76,12 +83,20 @@ fn check_planets(key: &str, max_deg: &[f64; 8], max_rel: f64) {
 #[test]
 fn planetas_tabla1_1800_2050() {
     // Errores documentados por JPL para 1800–2050: < 0.1° en todos los planetas
-    check_planets("planets", &[0.02, 0.02, 0.02, 0.03, 0.12, 0.2, 0.1, 0.1], 0.005);
+    check_planets(
+        "planets",
+        &[0.02, 0.02, 0.02, 0.03, 0.12, 0.2, 0.1, 0.1],
+        0.005,
+    );
 }
 
 #[test]
 fn planetas_tabla2_3000ac_3000dc() {
-    check_planets("planets_long_range", &[0.1, 0.1, 0.1, 0.2, 0.5, 1.0, 1.5, 1.0], 0.02);
+    check_planets(
+        "planets_long_range",
+        &[0.1, 0.1, 0.1, 0.2, 0.5, 1.0, 1.5, 1.0],
+        0.02,
+    );
 }
 
 #[test]
@@ -94,7 +109,12 @@ fn luna_con_teoria_de_meeus() {
         let truth = xyz(s);
         let (ang, rel) = errors(ours, truth);
         let km = norm(sub(ours, truth));
-        println!("luna Meeus {} → {:.4}° {:.4}% ({km:.0} km)", s["date"], ang, rel * 100.0);
+        println!(
+            "luna Meeus {} → {:.4}° {:.4}% ({km:.0} km)",
+            s["date"],
+            ang,
+            rel * 100.0
+        );
         assert!(ang < 0.01 && km < 100.0, "{}: {ang}° {km} km", s["date"]);
     }
 }
@@ -128,7 +148,11 @@ fn eclipse_solar_2026_08_12() {
     let dir = scale(axis, 1.0 / norm(axis));
     // Distancia mínima del eje Sol-Luna al centro de la Tierra
     let t = -(moon[0] * dir[0] + moon[1] * dir[1] + moon[2] * dir[2]);
-    let closest = [moon[0] + dir[0] * t, moon[1] + dir[1] * t, moon[2] + dir[2] * t];
+    let closest = [
+        moon[0] + dir[0] * t,
+        moon[1] + dir[1] * t,
+        moon[2] + dir[2] * t,
+    ];
     let gamma = norm(closest) / 6378.137;
     println!("gamma = {gamma:.4}");
     assert!((gamma - 0.8977).abs() < 0.02, "{gamma}");

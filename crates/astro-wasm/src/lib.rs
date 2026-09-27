@@ -69,7 +69,10 @@ impl Solar {
                 plane: if r[0] == 0.0 {
                     RefPlane::Ecliptic
                 } else {
-                    RefPlane::Pole { ra_deg: r[1], dec_deg: r[2] }
+                    RefPlane::Pole {
+                        ra_deg: r[1],
+                        dec_deg: r[2],
+                    }
                 },
                 epoch_jd: r[3],
                 a_km: r[4],
@@ -155,7 +158,11 @@ impl Solar {
         }
         for (k, m) in self.moons.iter().enumerate() {
             let parent = self.ecl[self.moon_parent[k]];
-            let rel = if Some(k) == self.earth_moon { moon_geo } else { m.position(jd) };
+            let rel = if Some(k) == self.earth_moon {
+                moon_geo
+            } else {
+                m.position(jd)
+            };
             self.ecl[FIRST_MOON + k] = add(parent, rel);
         }
         for (k, v) in self.ecl.iter().enumerate() {
@@ -187,7 +194,9 @@ impl Solar {
         let pts: Vec<[f64; 3]> = if (1..=8).contains(&index) {
             elements(Planet::ALL[index - 1], jd).sample_orbit(n)
         } else if (FIRST_DWARF..FIRST_MOON).contains(&index) {
-            self.dwarfs[index - FIRST_DWARF].elements_at(jd).sample_orbit(n)
+            self.dwarfs[index - FIRST_DWARF]
+                .elements_at(jd)
+                .sample_orbit(n)
         } else if index >= FIRST_MOON {
             self.moons[index - FIRST_MOON].orbit(jd, n)
         } else {
@@ -210,7 +219,12 @@ impl Solar {
     /// así que no hay temblor aunque la cámara esté a 50 au del Sol.
     pub fn update_small(&mut self, cam_x: f64, cam_y: f64, cam_z: f64) {
         let jd = self.jd_tdb;
-        for (k, rec) in self.small.chunks_exact(STRIDE).take(self.small_limit).enumerate() {
+        for (k, rec) in self
+            .small
+            .chunks_exact(STRIDE)
+            .take(self.small_limit)
+            .enumerate()
+        {
             let p = to_scene(Orbit::from_record(rec).position(jd));
             let o = &mut self.small_out[k * 3..k * 3 + 3];
             o[0] = (p[0] - cam_x) as f32;
@@ -259,8 +273,8 @@ impl Solar {
         // SphereGeometry: +x = longitud 0°, +y = polo norte, −z = longitud 90° E
         let cols = [meridian, pole, [-east[0], -east[1], -east[2]]];
         for (c, col) in cols.iter().enumerate() {
-            for r in 0..3 {
-                self.orientations[slot * 9 + c * 3 + r] = col[r] as f32;
+            for (r, v) in col.iter().enumerate() {
+                self.orientations[slot * 9 + c * 3 + r] = *v as f32;
             }
         }
     }
@@ -272,13 +286,18 @@ mod tests {
 
     #[test]
     fn estado_basico() {
-        let moon = [0.0, 0.0, 0.0, 2451545.0, 384400.0, 0.0554, 318.15, 135.27, 5.16, 125.08, 27.322, 5.997, 18.6];
+        let moon = [
+            0.0, 0.0, 0.0, 2451545.0, 384400.0, 0.0554, 318.15, 135.27, 5.16, 125.08, 27.322,
+            5.997, 18.6,
+        ];
         let dwarf = [2461310.5, 39.34, 0.248, 17.17, 110.3, 113.06, 54.35];
         let small = vec![2.77, 0.08, 10.6, 80.2, 73.2, 298.0, 9765.5, 3.3, 1.0];
         let mut s = Solar::new(&moon, &[EARTH as u32], &dwarf, small);
         s.update(2461310.5);
         let p = s.positions();
-        let d = |i: usize| (p[i * 3].powi(2) + p[i * 3 + 1].powi(2) + p[i * 3 + 2].powi(2)).sqrt() / 1.495978707e8;
+        let d = |i: usize| {
+            (p[i * 3].powi(2) + p[i * 3 + 1].powi(2) + p[i * 3 + 2].powi(2)).sqrt() / 1.495978707e8
+        };
         assert!((d(EARTH) - 1.0).abs() < 0.02);
         assert!((d(FIRST_DWARF) - 35.0).abs() < 10.0);
         s.update_small(0.0, 0.0, 0.0);

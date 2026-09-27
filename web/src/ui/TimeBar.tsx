@@ -1,8 +1,9 @@
-import { SPEEDS } from '../clock';
-import type { Engine, Snapshot } from '../engine';
-import { formatDate, speedLabel } from '../format';
+import { SPEEDS } from '../engine/clock';
+import type { Engine, Snapshot } from '../engine/engine';
+import { formatDate, speedLabel } from '../lib/format';
 
-const btn = 'rounded-lg border border-white/10 px-2 py-1 text-xs transition hover:border-accent/40 hover:bg-accent/10 cursor-pointer';
+const btn =
+  'rounded-lg border border-white/10 px-2 py-1 text-xs transition hover:border-accent/40 hover:bg-accent/10 cursor-pointer';
 const on = 'border-accent bg-accent/20 text-white';
 
 export function TimeBar({ engine, snap }: { engine: Engine; snap: Snapshot }) {
@@ -29,8 +30,12 @@ export function TimeBar({ engine, snap }: { engine: Engine; snap: Snapshot }) {
           </span>
         )}
         <div className="font-mono leading-tight">
-          <div className="text-[15px] font-semibold">{local.date} · {local.time}</div>
-          <div className="text-[11px] text-muted">UTC {utc.date} {utc.time}</div>
+          <div className="text-[15px] font-semibold">
+            {local.date} · {local.time}
+          </div>
+          <div className="text-[11px] text-muted">
+            UTC {utc.date} {utc.time}
+          </div>
         </div>
       </div>
 
@@ -43,8 +48,16 @@ export function TimeBar({ engine, snap }: { engine: Engine; snap: Snapshot }) {
           ● Tiempo real
         </button>
         <span className="mx-1 h-5 w-px bg-white/10" />
-        <button className={`${btn} w-8 ${!real && snap.direction < 0 ? on : ''}`} title="Invertir el tiempo" onClick={() => clock.reverse()}>⇆</button>
-        <button className={`${btn} w-8 ${snap.paused ? on : ''}`} title="Pausa (espacio)" onClick={() => clock.togglePause()}>❚❚</button>
+        <button
+          className={`${btn} w-8 ${!real && snap.direction < 0 ? on : ''}`}
+          title="Invertir el tiempo"
+          onClick={() => clock.reverse()}
+        >
+          ⇆
+        </button>
+        <button className={`${btn} w-8 ${snap.paused ? on : ''}`} title="Pausa (espacio)" onClick={() => clock.togglePause()}>
+          ❚❚
+        </button>
         <div className="flex gap-0.5">
           {SPEEDS.map((s, k) => (
             <button
@@ -67,7 +80,10 @@ export function TimeBar({ engine, snap }: { engine: Engine; snap: Snapshot }) {
           title="Ir a una fecha"
           onChange={(e) => {
             const t = Date.parse(e.target.value + 'T12:00:00Z');
-            if (!Number.isNaN(t)) { clock.jumpTo(t); if (!clock.paused) clock.setSpeed(clock.speed); }
+            if (!Number.isNaN(t)) {
+              clock.jumpTo(t);
+              if (!clock.paused) clock.setSpeed(clock.speed);
+            }
           }}
         />
       </div>

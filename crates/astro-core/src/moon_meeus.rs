@@ -144,11 +144,50 @@ fn horner(t: f64, c: &[f64]) -> f64 {
 /// Longitud, latitud (grados, eclíptica media de la fecha) y distancia (km) geocéntricas.
 pub fn position_of_date(jd_tdb: f64) -> (f64, f64, f64) {
     let t = centuries(jd_tdb);
-    let lp = horner(t, &[218.3164477, 481267.88123421, -0.0015786, 1.0 / 538841.0, -1.0 / 65194000.0]);
-    let d = horner(t, &[297.8501921, 445267.1114034, -0.0018819, 1.0 / 545868.0, -1.0 / 113065000.0]);
-    let m = horner(t, &[357.5291092, 35999.0502909, -0.0001535, 1.0 / 24490000.0]);
-    let mp = horner(t, &[134.9633964, 477198.8675055, 0.0087414, 1.0 / 69699.0, -1.0 / 14712000.0]);
-    let f = horner(t, &[93.272095, 483202.0175233, -0.0036539, -1.0 / 3526000.0, 1.0 / 863310000.0]);
+    let lp = horner(
+        t,
+        &[
+            218.3164477,
+            481267.88123421,
+            -0.0015786,
+            1.0 / 538841.0,
+            -1.0 / 65194000.0,
+        ],
+    );
+    let d = horner(
+        t,
+        &[
+            297.8501921,
+            445267.1114034,
+            -0.0018819,
+            1.0 / 545868.0,
+            -1.0 / 113065000.0,
+        ],
+    );
+    let m = horner(
+        t,
+        &[357.5291092, 35999.0502909, -0.0001535, 1.0 / 24490000.0],
+    );
+    let mp = horner(
+        t,
+        &[
+            134.9633964,
+            477198.8675055,
+            0.0087414,
+            1.0 / 69699.0,
+            -1.0 / 14712000.0,
+        ],
+    );
+    let f = horner(
+        t,
+        &[
+            93.272095,
+            483202.0175233,
+            -0.0036539,
+            -1.0 / 3526000.0,
+            1.0 / 863310000.0,
+        ],
+    );
     let a1 = (119.75 + 131.849 * t).to_radians();
     let a2 = (53.09 + 479264.29 * t).to_radians();
     let a3 = (313.45 + 481266.484 * t).to_radians();
@@ -168,8 +207,12 @@ pub fn position_of_date(jd_tdb: f64) -> (f64, f64, f64) {
         sl += r[4] * s * ecc(r[1]);
         sr += r[5] * c * ecc(r[1]);
     }
-    let mut sb = -2235.0 * lp_r.sin() + 382.0 * a3.sin() + 175.0 * (a1 - f_r).sin()
-        + 175.0 * (a1 + f_r).sin() + 127.0 * (lp_r - mp_r).sin() - 115.0 * (lp_r + mp_r).sin();
+    let mut sb = -2235.0 * lp_r.sin()
+        + 382.0 * a3.sin()
+        + 175.0 * (a1 - f_r).sin()
+        + 175.0 * (a1 + f_r).sin()
+        + 127.0 * (lp_r - mp_r).sin()
+        - 115.0 * (lp_r + mp_r).sin();
     for r in TABLE_B.iter() {
         sb += r[4] * arg(r).sin() * ecc(r[1]);
     }
@@ -181,17 +224,29 @@ pub fn ecliptic_of_date_to_j2000(lon_deg: f64, lat_deg: f64, jd_tdb: f64) -> (f6
     let big_t = centuries(jd_tdb);
     let t = -big_t;
     let arcsec = |x: f64| (x / 3600.0).to_radians();
-    let eta = arcsec((47.0029 - 0.06603 * big_t + 0.000598 * big_t * big_t) * t
-        + (-0.03302 + 0.000598 * big_t) * t * t + 0.00006 * t * t * t);
+    let eta = arcsec(
+        (47.0029 - 0.06603 * big_t + 0.000598 * big_t * big_t) * t
+            + (-0.03302 + 0.000598 * big_t) * t * t
+            + 0.00006 * t * t * t,
+    );
     let pi = 174.876384f64.to_radians()
-        + arcsec(3289.4789 * big_t + 0.60622 * big_t * big_t - (869.8089 + 0.50491 * big_t) * t + 0.03536 * t * t);
-    let p = arcsec((5029.0966 + 2.22226 * big_t - 0.000042 * big_t * big_t) * t
-        + (1.11113 - 0.000042 * big_t) * t * t - 0.000006 * t * t * t);
+        + arcsec(
+            3289.4789 * big_t + 0.60622 * big_t * big_t - (869.8089 + 0.50491 * big_t) * t
+                + 0.03536 * t * t,
+        );
+    let p = arcsec(
+        (5029.0966 + 2.22226 * big_t - 0.000042 * big_t * big_t) * t
+            + (1.11113 - 0.000042 * big_t) * t * t
+            - 0.000006 * t * t * t,
+    );
     let (l, b) = (lon_deg.to_radians(), lat_deg.to_radians());
     let a = eta.cos() * b.cos() * (pi - l).sin() - eta.sin() * b.sin();
     let bb = b.cos() * (pi - l).cos();
     let c = eta.cos() * b.sin() + eta.sin() * b.cos() * (pi - l).sin();
-    ((p + pi - a.atan2(bb)).to_degrees(), c.clamp(-1.0, 1.0).asin().to_degrees())
+    (
+        (p + pi - a.atan2(bb)).to_degrees(),
+        c.clamp(-1.0, 1.0).asin().to_degrees(),
+    )
 }
 
 /// Posición geocéntrica de la Luna en km, eclíptica y equinoccio J2000.

@@ -120,14 +120,27 @@ Por ejemplo, `?t=2026-03-03T11:33Z&focus=Luna&view=sol` abre el eclipse lunar to
 ## Estructura
 
 ```
-crates/astro-core/   Rust: tiempo, Kepler, tablas JPL, marcos, rotación IAU, lunas, cuerpos pequeños
-crates/astro-wasm/   puente wasm-bindgen: estado de todo el sistema en buffers para JS
-scripts/fetch_data.py  descarga los datos de JPL (SSD, SBDB, Horizons)
-web/src/engine.ts    escena Three.js: origen flotante, vuelos de cámara, órbitas, marcadores
-web/src/shaders.ts   GLSL: Sol, Tierra día/noche, atmósferas, anillos con sombra
-web/src/ui/          React + Tailwind: barra de tiempo, filtros, ficha de cada cuerpo
-web/public/data/     datos de JPL ya descargados
+crates/astro-core/     Rust: tiempo, Kepler, Standish, Meeus, rotación IAU, lunas, eventos
+crates/astro-wasm/     puente wasm-bindgen (SIMD + wasm-opt)
+web/src/engine/        escena Three.js: cuerpos, sombras, atmósferas, estrellas, asteroides en GPU/workers
+web/src/data/          catálogos, texturas por niveles, naves, eventos, tours, instalador offline
+web/src/ui/            React + Tailwind: portada, paneles, calendario, tours
+scripts/               descarga de datos de JPL y texturas de NASA/USGS
+tests/e2e/             Playwright
 ```
+
+La arquitectura completa, con el flujo de datos y las decisiones de diseño, está en [ARCHITECTURE.md](ARCHITECTURE.md); los cambios, en [CHANGELOG.md](CHANGELOG.md).
+
+## Desarrollo
+
+```bash
+cargo test --workspace && cargo clippy --workspace --all-targets -- -D warnings
+npm run lint && npm run typecheck
+npm test                      # Vitest
+npm run build && npm run test:e2e
+```
+
+La CI ejecuta todo esto en cada push (Rust, web y E2E con Playwright), además de CodeQL y Dependabot.
 
 ## Ramas
 

@@ -1,8 +1,8 @@
 import { useMemo, useState } from 'react';
-import type { Body, World } from '../data';
-import type { Engine, Layers } from '../engine';
-import { SMALL_CLASS_COLORS, SMALL_CLASS_NAMES } from '../catalog';
-import { num } from '../format';
+import type { Body, World } from '../data/world';
+import type { Engine, Layers } from '../engine/engine';
+import { SMALL_CLASS_COLORS, SMALL_CLASS_NAMES } from '../data/catalog';
+import { num } from '../lib/format';
 
 const hex = (c: number) => '#' + c.toString(16).padStart(6, '0');
 
@@ -69,9 +69,9 @@ export function Sidebar({ engine, world, focus, layers, onLayers, onSelect }: Pr
             </div>
             {expanded && moons.length > 0 && (
               <div className="ml-4 max-h-56 overflow-auto border-l border-white/10 pl-1">
-                {moons.filter((m) => m.resolved || layers.minorMoons).map((m) => (
-                  row(m, m.resolved ? `${num(m.info.radius, 0)} km` : undefined)
-                ))}
+                {moons
+                  .filter((m) => m.resolved || layers.minorMoons)
+                  .map((m) => row(m, m.resolved ? `${num(m.info.radius, 0)} km` : undefined))}
               </div>
             )}
           </div>
@@ -94,9 +94,18 @@ export function Sidebar({ engine, world, focus, layers, onLayers, onSelect }: Pr
         />
         {results.length > 0 && (
           <div className="glass absolute inset-x-0 top-10 z-20 max-h-72 overflow-auto p-1">
-            {results.map((b) => (
-              row(b, b.info.kind === 'moon' ? `luna de ${bodies[b.parent].info.name}` : b.info.kind === 'dwarf' ? 'planeta enano' : b.mission ? b.mission.agency : '')
-            ))}
+            {results.map((b) =>
+              row(
+                b,
+                b.info.kind === 'moon'
+                  ? `luna de ${bodies[b.parent].info.name}`
+                  : b.info.kind === 'dwarf'
+                    ? 'planeta enano'
+                    : b.mission
+                      ? b.mission.agency
+                      : '',
+              ),
+            )}
           </div>
         )}
       </div>
@@ -110,7 +119,17 @@ export function Sidebar({ engine, world, focus, layers, onLayers, onSelect }: Pr
 
       <details className="max-h-[42vh] overflow-auto text-[13px]" open>
         <summary className="mb-1.5 cursor-pointer text-[10px] font-semibold tracking-[0.16em] text-muted">FILTROS</summary>
-        {([['planets', 'Planetas'], ['crafts', 'Naves espaciales'], ['dwarfs', 'Planetas enanos'], ['moons', 'Lunas principales'], ['minorMoons', 'Lunas menores'], ['orbits', 'Órbitas'], ['labels', 'Etiquetas']] as const).map(([k, label]) => (
+        {(
+          [
+            ['planets', 'Planetas'],
+            ['crafts', 'Naves espaciales'],
+            ['dwarfs', 'Planetas enanos'],
+            ['moons', 'Lunas principales'],
+            ['minorMoons', 'Lunas menores'],
+            ['orbits', 'Órbitas'],
+            ['labels', 'Etiquetas'],
+          ] as const
+        ).map(([k, label]) => (
           <label key={k} className="flex cursor-pointer items-center gap-2 py-0.5">
             <input type="checkbox" className="accent-sky-400" checked={layers[k]} onChange={() => toggle(k)} /> {label}
           </label>
@@ -119,7 +138,10 @@ export function Sidebar({ engine, world, focus, layers, onLayers, onSelect }: Pr
           <span className="text-[10px] font-semibold tracking-[0.16em] text-muted">ASTEROIDES Y COMETAS</span>
           <button
             className="cursor-pointer text-[11px] text-accent hover:underline"
-            onClick={() => { const all = layers.small.every(Boolean); onLayers({ ...layers, small: layers.small.map(() => !all) }); }}
+            onClick={() => {
+              const all = layers.small.every(Boolean);
+              onLayers({ ...layers, small: layers.small.map(() => !all) });
+            }}
           >
             {layers.small.every(Boolean) ? 'ninguno' : 'todos'}
           </button>
@@ -132,7 +154,11 @@ export function Sidebar({ engine, world, focus, layers, onLayers, onSelect }: Pr
                 type="checkbox"
                 className="accent-sky-400"
                 checked={layers.small[k]}
-                onChange={() => { const s = [...layers.small]; s[k] = !s[k]; onLayers({ ...layers, small: s }); }}
+                onChange={() => {
+                  const s = [...layers.small];
+                  s[k] = !s[k];
+                  onLayers({ ...layers, small: s });
+                }}
               />
               <span className="size-2 rounded-full" style={{ background: hex(SMALL_CLASS_COLORS[k]) }} />
               {name}

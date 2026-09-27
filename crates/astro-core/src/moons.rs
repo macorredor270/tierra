@@ -13,7 +13,10 @@ use crate::time::DAYS_PER_YEAR;
 pub enum RefPlane {
     Ecliptic,
     /// Plano de Laplace o ecuador del planeta, dado por su polo (α, δ) en ICRF.
-    Pole { ra_deg: f64, dec_deg: f64 },
+    Pole {
+        ra_deg: f64,
+        dec_deg: f64,
+    },
 }
 
 #[derive(Clone, Copy, Debug, PartialEq)]
@@ -63,7 +66,7 @@ impl MoonElements {
         }
     }
 
-    fn to_ecliptic(&self, v: [f64; 3], basis: &Option<[[f64; 3]; 3]>) -> [f64; 3] {
+    fn plane_to_ecliptic(&self, v: [f64; 3], basis: &Option<[[f64; 3]; 3]>) -> [f64; 3] {
         match basis {
             None => v,
             Some([x, y, z]) => icrf_to_ecliptic(std::array::from_fn(|k| {
@@ -74,7 +77,7 @@ impl MoonElements {
 
     /// Posición relativa al planeta (km, eclíptica J2000).
     pub fn position(&self, jd_tdb: f64) -> [f64; 3] {
-        self.to_ecliptic(self.elements_at(jd_tdb).position(), &self.plane_basis())
+        self.plane_to_ecliptic(self.elements_at(jd_tdb).position(), &self.plane_basis())
     }
 
     /// Órbita en `jd_tdb`, relativa al planeta (km, eclíptica J2000).
@@ -83,7 +86,7 @@ impl MoonElements {
         self.elements_at(jd_tdb)
             .sample_orbit(n)
             .into_iter()
-            .map(|p| self.to_ecliptic(p, &basis))
+            .map(|p| self.plane_to_ecliptic(p, &basis))
             .collect()
     }
 }

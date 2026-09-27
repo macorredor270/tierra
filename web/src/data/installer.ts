@@ -57,7 +57,10 @@ export class Installer {
   paused = false;
   private resume: (() => void) | null = null;
 
-  constructor(private quality: Quality, private onProgress: (p: Progress) => void) {}
+  constructor(
+    private quality: Quality,
+    private onProgress: (p: Progress) => void,
+  ) {}
 
   pause(): void {
     this.paused = true;
@@ -110,7 +113,10 @@ export class Installer {
         const blob = new Blob(chunks as BlobPart[], { type: res.headers.get('content-type') ?? 'image/jpeg' });
         const buf = await blob.arrayBuffer();
         if ((await sha256(buf)) !== f.sha256) throw new Error(`${f.path}: la suma sha256 no coincide`);
-        await cache.put(f.path, new Response(blob, { headers: { 'content-type': blob.type, 'content-length': String(blob.size) } }));
+        await cache.put(
+          f.path,
+          new Response(blob, { headers: { 'content-type': blob.type, 'content-length': String(blob.size) } }),
+        );
         p.doneFiles++;
         this.onProgress({ ...p });
       }
@@ -118,7 +124,17 @@ export class Installer {
     await Promise.all(Array.from({ length: CONCURRENCY }, worker));
     if (this.aborted) throw new Error('cancelado');
     // Datos del motor (efemérides, estrellas, asteroides) también offline
-    await cache.addAll(['data/moons.json', 'data/dwarfs.json', 'data/smallbodies.json', 'data/smallbodies.bin', 'data/stars.bin', 'data/stars.json', 'data/spacecraft.json', 'data/spacecraft.bin', 'textures/manifest.json']);
+    await cache.addAll([
+      'data/moons.json',
+      'data/dwarfs.json',
+      'data/smallbodies.json',
+      'data/smallbodies.bin',
+      'data/stars.bin',
+      'data/stars.json',
+      'data/spacecraft.json',
+      'data/spacecraft.bin',
+      'textures/manifest.json',
+    ]);
     const state: InstallState = { quality: this.quality, files: files.length, bytes: total, date: new Date().toISOString() };
     localStorage.setItem(KEY, JSON.stringify(state));
     return state;

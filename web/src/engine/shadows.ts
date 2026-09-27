@@ -81,7 +81,10 @@ export function withShadows(mat: THREE.MeshStandardMaterial, selfId: number, ext
       .replace('#include <common>', '#include <common>\nvarying vec3 vShWorld;')
       .replace('#include <project_vertex>', '#include <project_vertex>\nvShWorld = (modelMatrix * vec4(transformed, 1.0)).xyz;');
     shader.fragmentShader = shader.fragmentShader
-      .replace('#include <common>', `#include <common>\nvarying vec3 vShWorld;\n${shadowGLSL}\n${extra?.ring ? ringShadowGLSL : ''}`)
+      .replace(
+        '#include <common>',
+        `#include <common>\nvarying vec3 vShWorld;\n${shadowGLSL}\n${extra?.ring ? ringShadowGLSL : ''}`,
+      )
       .replace(
         '#include <lights_fragment_end>',
         `#include <lights_fragment_end>

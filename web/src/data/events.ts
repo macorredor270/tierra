@@ -1,6 +1,6 @@
 // Eventos astronómicos calculados por el motor Rust (eclipses, oposiciones, elongaciones).
-import { Solar } from './wasm/astro_wasm.js';
-import type { World } from './data';
+import { Solar } from '../wasm/astro_wasm.js';
+import type { World } from './world';
 
 export interface AstroEvent {
   jd: number;

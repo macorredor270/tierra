@@ -24,7 +24,13 @@ export function App() {
   if (route === 'sim') {
     return (
       <Suspense fallback={<div className="fixed inset-0 bg-space" />}>
-        <Simulator onExit={() => { location.hash = ''; history.replaceState(null, '', location.pathname); setRoute('landing'); }} />
+        <Simulator
+          onExit={() => {
+            location.hash = '';
+            history.replaceState(null, '', location.pathname);
+            setRoute('landing');
+          }}
+        />
       </Suspense>
     );
   }

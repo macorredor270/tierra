@@ -57,21 +57,37 @@ export function missionState(f: Fleet, m: Mission | Track, jdTdb: number, pos: F
   const k = Math.min(Math.floor(u), m.count - 2);
   const t = u - k;
   const s = f.stride;
-  const a = (m.offset + k * s), b = a + s;
+  const a = m.offset + k * s,
+    b = a + s;
   const d = f.data;
   const h = m.step * 86400; // segundos entre muestras
-  const t2 = t * t, t3 = t2 * t;
-  const h00 = 2 * t3 - 3 * t2 + 1, h10 = t3 - 2 * t2 + t, h01 = -2 * t3 + 3 * t2, h11 = t3 - t2;
+  const t2 = t * t,
+    t3 = t2 * t;
+  const h00 = 2 * t3 - 3 * t2 + 1,
+    h10 = t3 - 2 * t2 + t,
+    h01 = -2 * t3 + 3 * t2,
+    h11 = t3 - t2;
   // derivadas de las bases (para la velocidad)
-  const d00 = (6 * t2 - 6 * t) / h, d10 = 3 * t2 - 4 * t + 1, d01 = (-6 * t2 + 6 * t) / h, d11 = 3 * t2 - 2 * t;
-  const e = [0, 0, 0], v = [0, 0, 0];
+  const d00 = (6 * t2 - 6 * t) / h,
+    d10 = 3 * t2 - 4 * t + 1,
+    d01 = (-6 * t2 + 6 * t) / h,
+    d11 = 3 * t2 - 2 * t;
+  const e = [0, 0, 0],
+    v = [0, 0, 0];
   for (let c = 0; c < 3; c++) {
-    const p0 = d[a + c], p1 = d[b + c], m0 = d[a + 3 + c], m1 = d[b + 3 + c];
+    const p0 = d[a + c],
+      p1 = d[b + c],
+      m0 = d[a + 3 + c],
+      m1 = d[b + 3 + c];
     e[c] = h00 * p0 + h10 * h * m0 + h01 * p1 + h11 * h * m1;
     v[c] = d00 * p0 + d10 * m0 + d01 * p1 + d11 * m1;
   }
-  pos[0] = e[0]; pos[1] = e[2]; pos[2] = -e[1];
-  vel[0] = v[0]; vel[1] = v[2]; vel[2] = -v[1];
+  pos[0] = e[0];
+  pos[1] = e[2];
+  pos[2] = -e[1];
+  vel[0] = v[0];
+  vel[1] = v[2];
+  vel[2] = -v[1];
   return true;
 }
 

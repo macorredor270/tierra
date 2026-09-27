@@ -21,7 +21,11 @@ pub fn radec_unit(ra_deg: f64, dec_deg: f64) -> [f64; 3] {
 }
 
 pub fn cross(a: [f64; 3], b: [f64; 3]) -> [f64; 3] {
-    [a[1] * b[2] - a[2] * b[1], a[2] * b[0] - a[0] * b[2], a[0] * b[1] - a[1] * b[0]]
+    [
+        a[1] * b[2] - a[2] * b[1],
+        a[2] * b[0] - a[0] * b[2],
+        a[0] * b[1] - a[1] * b[0],
+    ]
 }
 
 pub fn norm(v: [f64; 3]) -> f64 {

@@ -25,7 +25,11 @@ export const mass = (kg: number) => {
 };
 
 const SUP = '⁰¹²³⁴⁵⁶⁷⁸⁹';
-const sup = (n: number) => String(n).split('').map((c) => (c === '-' ? '⁻' : SUP[+c])).join('');
+const sup = (n: number) =>
+  String(n)
+    .split('')
+    .map((c) => (c === '-' ? '⁻' : SUP[+c]))
+    .join('');
 
 /** Fecha que admite años negativos (hasta 3000 a.C.). */
 export function formatDate(ms: number, utc = false): { date: string; time: string } {
@@ -41,5 +45,4 @@ export function formatDate(ms: number, utc = false): { date: string; time: strin
   return { date: `${pad(da)}/${pad(mo)}/${year}`, time: `${pad(h)}:${pad(mi)}:${pad(s)}` };
 }
 
-export const speedLabel = (s: number) =>
-  s >= 1e6 ? `×${s / 1e6}M` : s >= 1e3 ? `×${s / 1e3}k` : `×${s}`;
+export const speedLabel = (s: number) => (s >= 1e6 ? `×${s / 1e6}M` : s >= 1e3 ? `×${s / 1e3}k` : `×${s}`);

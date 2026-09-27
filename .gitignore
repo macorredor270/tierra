@@ -1,2 +1,4 @@
 node_modules/
 dist/
+.texture-cache/
+__pycache__/

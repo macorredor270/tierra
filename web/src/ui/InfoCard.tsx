@@ -2,6 +2,7 @@ import type { Body, World } from '../data';
 import type { Snapshot } from '../engine';
 import { MOON_NOTES } from '../catalog';
 import { duration, km, lightTime, mass, num } from '../format';
+import { creditFor, textureKey } from '../textures';
 
 const KIND: Record<string, string> = { star: 'Estrella', planet: 'Planeta', dwarf: 'Planeta enano', moon: 'Luna' };
 
@@ -73,6 +74,8 @@ export function InfoCard({ body, world, snap, onClose, onSelect }: Props) {
             : body.index <= 8
               ? 'Órbita: elementos keplerianos de JPL (Standish). Datos físicos: JPL Planetary Physical Parameters.'
               : 'Órbita: elementos osculantes de JPL Horizons. Datos físicos: JPL Planetary Physical Parameters.'}
+        {' '}
+        {creditFor(textureKey(body)) ? `Imagen: ${creditFor(textureKey(body))}.` : 'Superficie procedural (sin mosaico global publicado).'}
       </p>
     </article>
   );

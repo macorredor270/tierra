@@ -1,5 +1,6 @@
 import init, { Solar } from './wasm/astro_wasm.js';
 import { DWARFS, MOON_NAMES_ES, PARENT_INDEX, SUN_AND_PLANETS, type BodyInfo } from './catalog';
+import { loadManifest } from './textures';
 
 export interface MoonRecord {
   name: string;
@@ -55,7 +56,7 @@ async function fetchJson<T>(url: string): Promise<T> {
 
 export async function loadWorld(onProgress: (msg: string) => void): Promise<World> {
   onProgress('Iniciando motor WebAssembly');
-  const wasm = await init();
+  const [wasm] = await Promise.all([init(), loadManifest()]);
   onProgress('Descargando elementos orbitales de JPL');
   const [moonsJson, dwarfsJson, smallMeta, smallBuf] = await Promise.all([
     fetchJson<{ moons: MoonRecord[] }>('data/moons.json'),

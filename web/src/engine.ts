@@ -14,6 +14,7 @@ import { detectHardware, initialGraphics, saveGraphics, type Graphics, type Hard
 import { SmallPool } from './smallPool';
 import { createStars } from './stars';
 import { MAX_OCCLUDERS, shadowUniforms } from './shadows';
+import { pickLevel, texturePath } from './textures';
 
 export const AU = 149_597_870.7;
 const GM_SUN = 1.32712440018e11; // km³/s²
@@ -103,7 +104,6 @@ export class Engine {
   private stars: THREE.Points | null = null;
   private sky: THREE.Texture;
   private textures: THREE.Texture[] = [];
-  private earthQuality = 0;
   /** Factor de la resolución dinámica (1 = sin reducir). */
   private dynScale = 1;
   private lastFrame = 0;
@@ -154,7 +154,7 @@ export class Engine {
 
     for (const b of this.bodies) {
       if (!b.resolved) continue;
-      const v = createBodyView(b, tex, this.graphics.textures);
+      const v = createBodyView(b, tex);
       v.spin.matrixAutoUpdate = false;
       this.views.set(b.index, v);
       this.scene.add(v.root);
@@ -172,7 +172,6 @@ export class Engine {
     this.composer.addPass(this.bloom);
     this.composer.addPass(new OutputPass());
 
-    this.earthQuality = this.graphics.textures;
     this.setGraphics(this.graphics);
     createStars(this.renderer.getPixelRatio()).then((st) => {
       if (this.disposed) return;
@@ -259,7 +258,7 @@ export class Engine {
     for (const t of this.textures) {
       if (t.anisotropy !== aniso) { t.anisotropy = aniso; if (t.image) t.needsUpdate = true; }
     }
-    if (g.textures !== this.earthQuality) this.loadEarth(g.textures);
+    this.upgradeTextures(g.textures);
     this.applyStars();
     const active = Math.round(this.solar.small_count() * g.smallDensity);
     if (active !== this.smallActive || g.workers !== prev.workers || (g.workers && !this.pool)) {
@@ -298,29 +297,48 @@ export class Engine {
     this.scene.backgroundIntensity = this.graphics.stars ? 0.1 : 0.3;
   }
 
-  /** Cambia las texturas de la Tierra (2K/4K/8K) cuando han terminado de cargar. */
-  private loadEarth(q: number): void {
-    this.earthQuality = q;
-    const earth = this.views.get(3);
-    const u = earth?.uniforms;
-    if (!u) return;
-    const loader = new THREE.TextureLoader();
+  /**
+   * Sube (o baja) cada cuerpo al nivel de textura pedido. Los cuerpos arrancan en 1K y cambian
+   * al nivel alto cuando la imagen ya está descargada y decodificada, sin parones.
+   */
+  private upgradeTextures(q: number): void {
     const aniso = this.graphics.anisotropy ? this.renderer.capabilities.getMaxAnisotropy() : 1;
-    const swap = (key: string, file: string, srgb: boolean, repeat = false) => {
-      loader.load('textures/earth/' + file, (t) => {
-        if (this.earthQuality !== q) return t.dispose();
+    const loader = new THREE.TextureLoader();
+    const load = (path: string, srgb: boolean, apply: (t: THREE.Texture) => void, repeat = false) =>
+      loader.load(path, (t) => {
+        if (this.disposed) return t.dispose();
         if (srgb) t.colorSpace = THREE.SRGBColorSpace;
         if (repeat) t.wrapS = THREE.RepeatWrapping;
         t.anisotropy = aniso;
-        const old = u[key].value as THREE.Texture;
-        u[key].value = t;
-        this.textures = this.textures.filter((x) => x !== old).concat(t);
-        old.dispose();
+        this.textures.push(t);
+        apply(t);
       });
-    };
-    swap('dayMap', `day-${q}k.jpg`, true);
-    swap('nightMap', `night-${q}k.jpg`, true);
-    swap('cloudsMap', `clouds-${q}k.jpg`, false, true);
+    for (const v of this.views.values()) {
+      if (!v.texKey) continue;
+      const target = pickLevel(v.texKey, q);
+      if (target === v.texLevel) continue;
+      v.texLevel = target;
+      const swap = (old: THREE.Texture | null, t: THREE.Texture, set: (t: THREE.Texture) => void) => {
+        if (v.texLevel !== target) return t.dispose();
+        set(t);
+        if (old) {
+          this.textures = this.textures.filter((x) => x !== old);
+          old.dispose();
+        }
+      };
+      if (v.texKey === 'earth' && v.uniforms) {
+        const u = v.uniforms;
+        for (const [uniform, layer, srgb] of [['dayMap', 'day', true], ['nightMap', 'night', true], ['cloudsMap', 'clouds', false]] as const) {
+          load(texturePath('earth', target, layer), srgb, (t) => swap(u[uniform].value, t, (x) => (u[uniform].value = x)), layer === 'clouds');
+        }
+      } else if (v.body.info.kind === 'star' && v.uniforms) {
+        const u = v.uniforms;
+        load(texturePath(v.texKey, target), true, (t) => swap(u.map.value, t, (x) => (u.map.value = x)));
+      } else {
+        const mat = v.mesh.material as THREE.MeshStandardMaterial;
+        load(texturePath(v.texKey, target), true, (t) => swap(mat.map, t, (x) => { mat.map = x; mat.needsUpdate = true; }));
+      }
+    }
   }
 
   /** Filtro por tipo de cuerpo; el cuerpo enfocado siempre se ve. */

@@ -1,0 +1,818 @@
+{
+ "version": 1,
+ "files": [
+  {
+   "path": "textures/2k_saturn_ring_alpha.png",
+   "body": "misc",
+   "level": 2,
+   "bytes": 12119,
+   "sha256": "4b0644b2f3ef259fd0bfaedd9dc52f9e7d9738f65f50363e8c4dd19f650d7334"
+  },
+  {
+   "path": "textures/2k_stars_milky_way.jpg",
+   "body": "misc",
+   "level": 2,
+   "bytes": 251454,
+   "sha256": "ec2240e6f3784d962ab81609b228bfd470e87c86d1fed5e99134d4cd3de24239"
+  },
+  {
+   "path": "textures/callisto/1k.jpg",
+   "body": "callisto",
+   "level": 1,
+   "bytes": 74806,
+   "sha256": "d7db8f8ce21edc9ee765fa80ca4cea0f49b2bc366804e322b215b36aa91e1b26"
+  },
+  {
+   "path": "textures/callisto/2k.jpg",
+   "body": "callisto",
+   "level": 2,
+   "bytes": 309147,
+   "sha256": "7c0d50ce77b5fc9ecee3e952cde0f33b7910b5c063c8913c52dd0f114a88cc5e"
+  },
+  {
+   "path": "textures/callisto/4k.jpg",
+   "body": "callisto",
+   "level": 4,
+   "bytes": 1209977,
+   "sha256": "4c3ed7ab3fdc88625dd50ac5de2036be43c645e76af6c9374d44ba9ca55fc6f7"
+  },
+  {
+   "path": "textures/callisto/8k.jpg",
+   "body": "callisto",
+   "level": 8,
+   "bytes": 3708079,
+   "sha256": "1f40bcbdc9f520f0f5cb861a0ccd9ab1a1ba0d02fc50fa8cef71665f85b800f3"
+  },
+  {
+   "path": "textures/charon/1k.jpg",
+   "body": "charon",
+   "level": 1,
+   "bytes": 68835,
+   "sha256": "f996bbdd6ce55e34f3b9873c8c2fdeb56f3ba8d9c56d8152b5a21b5d7aefcd73"
+  },
+  {
+   "path": "textures/charon/2k.jpg",
+   "body": "charon",
+   "level": 2,
+   "bytes": 235485,
+   "sha256": "fd98bd3702170919a978cb9a82be35d558c84d4e248a47755cf327f696b6773e"
+  },
+  {
+   "path": "textures/charon/4k.jpg",
+   "body": "charon",
+   "level": 4,
+   "bytes": 799817,
+   "sha256": "34cae4ab2f4f6299be29399b2694d4e0a22c70f4d41e3b2847138f4dee66445b"
+  },
+  {
+   "path": "textures/charon/8k.jpg",
+   "body": "charon",
+   "level": 8,
+   "bytes": 2331890,
+   "sha256": "e49a37dd37c65dde4f9c27aa91266ebecd62a1935293aea1801409bb66364c14"
+  },
+  {
+   "path": "textures/dione/1k.jpg",
+   "body": "dione",
+   "level": 1,
+   "bytes": 141735,
+   "sha256": "bbd4873a58c40c25b609f77ed322db13d0f37ec37c136aa14b8cf81555a0cb77"
+  },
+  {
+   "path": "textures/dione/2k.jpg",
+   "body": "dione",
+   "level": 2,
+   "bytes": 531991,
+   "sha256": "6c3d500c700fef73074c098cc175ed36003575716e24162f145dc8c1b472a3ae"
+  },
+  {
+   "path": "textures/dione/4k.jpg",
+   "body": "dione",
+   "level": 4,
+   "bytes": 1753017,
+   "sha256": "43c31706e6df686ebb8fcbfb29c6fb967c767a65f9f6e6daafe7094f5324d0c3"
+  },
+  {
+   "path": "textures/dione/8k.jpg",
+   "body": "dione",
+   "level": 8,
+   "bytes": 4808387,
+   "sha256": "b9fbe64831a098ce3d001c0a11a471253a4805db6283ba67f64fd71abcf80a72"
+  },
+  {
+   "path": "textures/earth/clouds-1k.jpg",
+   "body": "earth",
+   "level": 1,
+   "bytes": 176930,
+   "sha256": "1e220a298578c9554ab20a64b1527845da2287ed0132722480ee5ddf6cb6dfab"
+  },
+  {
+   "path": "textures/earth/clouds-2k.jpg",
+   "body": "earth",
+   "level": 2,
+   "bytes": 644459,
+   "sha256": "ca1f9212f14afe05b3a45820534b3be0a4ca0b326af8aa417777bda143c7ce12"
+  },
+  {
+   "path": "textures/earth/clouds-4k.jpg",
+   "body": "earth",
+   "level": 4,
+   "bytes": 2332099,
+   "sha256": "3f8b4fb0af44344c410de6532b3cdeded313a65714e35ab1b63f2c83cf9d0e5a"
+  },
+  {
+   "path": "textures/earth/clouds-8k.jpg",
+   "body": "earth",
+   "level": 8,
+   "bytes": 7338633,
+   "sha256": "475cc14d7a994ccca994eed4666257ed617cf1d3244d83f4e90be3e69c409374"
+  },
+  {
+   "path": "textures/earth/day-1k.jpg",
+   "body": "earth",
+   "level": 1,
+   "bytes": 117041,
+   "sha256": "59b38356b8bbaa175c4b5f53ced5a6b88d41b7633f317d907d33957e1b458adc"
+  },
+  {
+   "path": "textures/earth/day-2k.jpg",
+   "body": "earth",
+   "level": 2,
+   "bytes": 400027,
+   "sha256": "6704dee8b96d1d229d4cbca4d3262af5884ecf4bda9c4d9b78b4f1ab9943b747"
+  },
+  {
+   "path": "textures/earth/day-4k.jpg",
+   "body": "earth",
+   "level": 4,
+   "bytes": 1382446,
+   "sha256": "f21e9b62a1f8e92e9c1de59ccdec1b5ce6594a26532c1a45dcb4d62aba0f8843"
+  },
+  {
+   "path": "textures/earth/day-8k.jpg",
+   "body": "earth",
+   "level": 8,
+   "bytes": 4323497,
+   "sha256": "a6c10db4072d3bb66496de11e639266e8bbbcc371650d30ceaf572d687b9941d"
+  },
+  {
+   "path": "textures/earth/night-1k.jpg",
+   "body": "earth",
+   "level": 1,
+   "bytes": 44143,
+   "sha256": "7a9ade6daa08665a3fb1b118d02dcf8b8ae6d74c38a8de24f56038a4548069a3"
+  },
+  {
+   "path": "textures/earth/night-2k.jpg",
+   "body": "earth",
+   "level": 2,
+   "bytes": 148430,
+   "sha256": "46fd46c894b1471237a3c04f9ee60ec2bc06408c6a163538450cc2d32d2226aa"
+  },
+  {
+   "path": "textures/earth/night-4k.jpg",
+   "body": "earth",
+   "level": 4,
+   "bytes": 519601,
+   "sha256": "b4d7eb2831d79038fe32f3c19e53e3087cad4ca1840c53f59dce1b993c1c1023"
+  },
+  {
+   "path": "textures/earth/night-8k.jpg",
+   "body": "earth",
+   "level": 8,
+   "bytes": 1710362,
+   "sha256": "4af55223948779209e704e8c9c9ae1c87d31cc697dd1f2d3b3dfe70f69e83469"
+  },
+  {
+   "path": "textures/earth/water-4k.png",
+   "body": "earth",
+   "level": 4,
+   "bytes": 313934,
+   "sha256": "db8f9f88cf107f59b998eb0ef052d75134b7c908b53dda60a83fde75eb5c0113"
+  },
+  {
+   "path": "textures/enceladus/1k.jpg",
+   "body": "enceladus",
+   "level": 1,
+   "bytes": 114427,
+   "sha256": "b3b2d1c1f1e3d2f0e22c17d17b43e7d1c09dcedfcb19d14ce8147513957b6d0c"
+  },
+  {
+   "path": "textures/enceladus/2k.jpg",
+   "body": "enceladus",
+   "level": 2,
+   "bytes": 486278,
+   "sha256": "6c2663b7a6aa14d2feedaa7880c41c3ef4c94c3394252f59ec7b1c2a2fbca116"
+  },
+  {
+   "path": "textures/enceladus/4k.jpg",
+   "body": "enceladus",
+   "level": 4,
+   "bytes": 1619802,
+   "sha256": "b30b409bdf4a60945ba6c9d314a080ba5ea0d8144ee756af8e0f8dcf9426c620"
+  },
+  {
+   "path": "textures/enceladus/8k.jpg",
+   "body": "enceladus",
+   "level": 8,
+   "bytes": 4295851,
+   "sha256": "9b5f0802aec1e0832f65c66fed55e0a088cc3e761b1a67fa777fdf977d0d9b96"
+  },
+  {
+   "path": "textures/europa/1k.jpg",
+   "body": "europa",
+   "level": 1,
+   "bytes": 88639,
+   "sha256": "b6611f7239cdbb86277cc9929ed600725210012f653f80400ca051bd92218445"
+  },
+  {
+   "path": "textures/europa/2k.jpg",
+   "body": "europa",
+   "level": 2,
+   "bytes": 358317,
+   "sha256": "8bfd9357c76ee3603ae3123dcafdce7369c986151fe74ee123f557a7afc7ca75"
+  },
+  {
+   "path": "textures/europa/4k.jpg",
+   "body": "europa",
+   "level": 4,
+   "bytes": 1300974,
+   "sha256": "b735e69a75a53e2112c27a3fb1b688a0e1579670eee67474bdb992060569d894"
+  },
+  {
+   "path": "textures/europa/8k.jpg",
+   "body": "europa",
+   "level": 8,
+   "bytes": 3760637,
+   "sha256": "5040e6410dfdb06264e599a450f30179ede89e63c07bd2b801f50d0c36ce27c6"
+  },
+  {
+   "path": "textures/ganymede/1k.jpg",
+   "body": "ganymede",
+   "level": 1,
+   "bytes": 75076,
+   "sha256": "f3cb2f7978520615a004763c7e9e6db35397d718da2c26b56c105aeb49dc2bb7"
+  },
+  {
+   "path": "textures/ganymede/2k.jpg",
+   "body": "ganymede",
+   "level": 2,
+   "bytes": 297546,
+   "sha256": "cb83737f0681c37741a63d07953bbe74b8ab0a334bc3e66393ca25a1cc32b32c"
+  },
+  {
+   "path": "textures/ganymede/4k.jpg",
+   "body": "ganymede",
+   "level": 4,
+   "bytes": 1172833,
+   "sha256": "7494df8f1d84dc07834039aa346ec94409f13b8f595a9a2f7411a4712fa8a7cf"
+  },
+  {
+   "path": "textures/ganymede/8k.jpg",
+   "body": "ganymede",
+   "level": 8,
+   "bytes": 3736653,
+   "sha256": "0f4923169346a97541b6b0586c2cdaf96b4376ee66ed4c108c0fcf9538602989"
+  },
+  {
+   "path": "textures/iapetus/1k.jpg",
+   "body": "iapetus",
+   "level": 1,
+   "bytes": 122815,
+   "sha256": "839ddc6ae48d79488e0cd9977a03345c89f02118cd3157d1c6d26cc814cb760b"
+  },
+  {
+   "path": "textures/iapetus/2k.jpg",
+   "body": "iapetus",
+   "level": 2,
+   "bytes": 433373,
+   "sha256": "e264652c62095f04874a6547a54b6962bb998b5ab2976b52d0a12cb16538ba46"
+  },
+  {
+   "path": "textures/iapetus/4k.jpg",
+   "body": "iapetus",
+   "level": 4,
+   "bytes": 1384308,
+   "sha256": "70d14d856ad8d5a4cf5e820d91327070dae01c5ad861b17891270e85a501cd1c"
+  },
+  {
+   "path": "textures/iapetus/8k.jpg",
+   "body": "iapetus",
+   "level": 8,
+   "bytes": 3666273,
+   "sha256": "a909b5dac24d7f940d2d424fec90d3be93b05b6f9a0b7bcd0805049bbf74156e"
+  },
+  {
+   "path": "textures/io/1k.jpg",
+   "body": "io",
+   "level": 1,
+   "bytes": 64992,
+   "sha256": "3a3d7bf261c42eb783c007f381dc5a59835b195e3c290265ca0e43998262b380"
+  },
+  {
+   "path": "textures/io/2k.jpg",
+   "body": "io",
+   "level": 2,
+   "bytes": 205603,
+   "sha256": "ec75a7840939343741c81b9cbb505095c00711585cb522eb8de7856254e08d1e"
+  },
+  {
+   "path": "textures/io/4k.jpg",
+   "body": "io",
+   "level": 4,
+   "bytes": 646596,
+   "sha256": "bf34449cf6891d7dfe01aee707e06f46156a48085a9384e657d682c354c66a37"
+  },
+  {
+   "path": "textures/io/8k.jpg",
+   "body": "io",
+   "level": 8,
+   "bytes": 1722670,
+   "sha256": "b06b459d5334dd8169e0f28e598752876daf26e63af2abeabec89f12959c5224"
+  },
+  {
+   "path": "textures/jupiter/1k.jpg",
+   "body": "jupiter",
+   "level": 1,
+   "bytes": 92301,
+   "sha256": "17cf2f7d67522fcd8de85a30611bbfb9d7adaa44f90d8907fc740b88c7bcb4b2"
+  },
+  {
+   "path": "textures/jupiter/2k.jpg",
+   "body": "jupiter",
+   "level": 2,
+   "bytes": 288539,
+   "sha256": "d5c4742c208f75ec1e351b8299c31df028ad4d3a9dc9f6eeeca6331e4d0ded31"
+  },
+  {
+   "path": "textures/jupiter/4k.jpg",
+   "body": "jupiter",
+   "level": 4,
+   "bytes": 828852,
+   "sha256": "d0f3d656c865d7f93da00dda626233863a5188f3cf0fcb3bf1da493c3122025f"
+  },
+  {
+   "path": "textures/mars/1k.jpg",
+   "body": "mars",
+   "level": 1,
+   "bytes": 86909,
+   "sha256": "8079b5a7a159890112f12ca5d19cd3cbd7c9355d5a772961c7fa0b90b090c5d4"
+  },
+  {
+   "path": "textures/mars/2k.jpg",
+   "body": "mars",
+   "level": 2,
+   "bytes": 298199,
+   "sha256": "65c6ce63f562251c19381fba3d7c4645a87065ae250abcf39cca0bea53c5067d"
+  },
+  {
+   "path": "textures/mars/4k.jpg",
+   "body": "mars",
+   "level": 4,
+   "bytes": 1011055,
+   "sha256": "403ba2056a89f26c3a857ae1d450e00f750bb0cdcc82d2034315e7f15159a595"
+  },
+  {
+   "path": "textures/mars/8k.jpg",
+   "body": "mars",
+   "level": 8,
+   "bytes": 2896585,
+   "sha256": "6601c82ad9f6603e83e690804f54fb26ffcc15db10d797f32b909942b0e95686"
+  },
+  {
+   "path": "textures/mercury/1k.jpg",
+   "body": "mercury",
+   "level": 1,
+   "bytes": 149180,
+   "sha256": "50b47ee199bcc8eabcd5e80239280917eb1ab954ecd5035a0d37786b832c5d59"
+  },
+  {
+   "path": "textures/mercury/2k.jpg",
+   "body": "mercury",
+   "level": 2,
+   "bytes": 582318,
+   "sha256": "8930308fc7c6a51a72c6e505de0b3274d16bb927826d943ab35e42d476a162c7"
+  },
+  {
+   "path": "textures/mercury/4k.jpg",
+   "body": "mercury",
+   "level": 4,
+   "bytes": 2253564,
+   "sha256": "87df00508765a5be07aae08935ab7f51e7a2a6b675ee4c350465ee08a869ddbf"
+  },
+  {
+   "path": "textures/mercury/8k.jpg",
+   "body": "mercury",
+   "level": 8,
+   "bytes": 7614323,
+   "sha256": "68e1409ce631f8f4a791d437f6cb3b8865f432a050f3408efbebb291c6438704"
+  },
+  {
+   "path": "textures/mimas/1k.jpg",
+   "body": "mimas",
+   "level": 1,
+   "bytes": 140635,
+   "sha256": "41527f5d6deaec046cebaa40d393a7e39c784dd7e0b265fa309ccad15218d2b8"
+  },
+  {
+   "path": "textures/mimas/2k.jpg",
+   "body": "mimas",
+   "level": 2,
+   "bytes": 418996,
+   "sha256": "7080497d23055e97594c48cd3cd4f2218168e5b83a5fed050e258333ddc990eb"
+  },
+  {
+   "path": "textures/mimas/4k.jpg",
+   "body": "mimas",
+   "level": 4,
+   "bytes": 1185242,
+   "sha256": "81629d94293cbf3831285239e4c93c3f2549c9e7a496a253cdf8763498e35d94"
+  },
+  {
+   "path": "textures/moon/1k.jpg",
+   "body": "moon",
+   "level": 1,
+   "bytes": 109542,
+   "sha256": "d32271a90e84df547d6bddf72703d46555296fedf1f13de4b62d22f3bded8384"
+  },
+  {
+   "path": "textures/moon/2k.jpg",
+   "body": "moon",
+   "level": 2,
+   "bytes": 420616,
+   "sha256": "96e1872279170a294b64203875165a62b5551f5b7e9dca5798c3a6b81808d1eb"
+  },
+  {
+   "path": "textures/moon/4k.jpg",
+   "body": "moon",
+   "level": 4,
+   "bytes": 1598122,
+   "sha256": "4d579d6e85e1f81e95ec8b9922f6fde251ec3ba8e63c8f3ce30c002abd99203c"
+  },
+  {
+   "path": "textures/moon/8k.jpg",
+   "body": "moon",
+   "level": 8,
+   "bytes": 5670013,
+   "sha256": "5c7f9472bc9ab41498a249905a39d3dca6f6fb9aa423e9f461a3ca999768ec44"
+  },
+  {
+   "path": "textures/neptune/1k.jpg",
+   "body": "neptune",
+   "level": 1,
+   "bytes": 21997,
+   "sha256": "148234818cdc16f107b29bef9870d362a2f11b8b3a7d9bcd2ef5f592708a1337"
+  },
+  {
+   "path": "textures/neptune/2k.jpg",
+   "body": "neptune",
+   "level": 2,
+   "bytes": 90972,
+   "sha256": "9cf6fde420dcf90b2c026f459e503e1aa5a46df998ebe3d902d827a96f578654"
+  },
+  {
+   "path": "textures/phobos/1k.jpg",
+   "body": "phobos",
+   "level": 1,
+   "bytes": 90328,
+   "sha256": "539a7094aeacd07a78718c5c3a1398b801d1e6b42213e5c19dc95fcdd527d7b2"
+  },
+  {
+   "path": "textures/phobos/2k.jpg",
+   "body": "phobos",
+   "level": 2,
+   "bytes": 308336,
+   "sha256": "1446a4d3f376c0aaa815bd3acba91520a62d840348a3a9b96268a949dbe26e13"
+  },
+  {
+   "path": "textures/phobos/4k.jpg",
+   "body": "phobos",
+   "level": 4,
+   "bytes": 1072257,
+   "sha256": "4ca2dc12b1613751e8062ff28479f79a05225454f536e6feb7e6215763480796"
+  },
+  {
+   "path": "textures/phobos/8k.jpg",
+   "body": "phobos",
+   "level": 8,
+   "bytes": 3379835,
+   "sha256": "7d1b955ec1a1086ce8cdec00a6b268240c0804046129a614610c990bb489cad4"
+  },
+  {
+   "path": "textures/pluto/1k.jpg",
+   "body": "pluto",
+   "level": 1,
+   "bytes": 83422,
+   "sha256": "07d5aa8299e792c232f0143399c475b3ddf2906b27f37763003e85d5fbe270c9"
+  },
+  {
+   "path": "textures/pluto/2k.jpg",
+   "body": "pluto",
+   "level": 2,
+   "bytes": 301219,
+   "sha256": "d4ddabf8b6ff707ddf15b30a251cfa580ae8fe854ceaf442373b107270d7e8e8"
+  },
+  {
+   "path": "textures/pluto/4k.jpg",
+   "body": "pluto",
+   "level": 4,
+   "bytes": 1051453,
+   "sha256": "444ce05ab7b14ba5b0ff071fd096ff13e50e66ab1b92fa56079acf9f790a2c31"
+  },
+  {
+   "path": "textures/pluto/8k.jpg",
+   "body": "pluto",
+   "level": 8,
+   "bytes": 3226331,
+   "sha256": "772008fa71d0629c26dcacd254069a801ad1b59f4a420e00eab64ce850e44517"
+  },
+  {
+   "path": "textures/rhea/1k.jpg",
+   "body": "rhea",
+   "level": 1,
+   "bytes": 170428,
+   "sha256": "3a905d50fcefbb4f4d0e23880cff0579b9c3bbf66bbbae1b1f82066794f9edb1"
+  },
+  {
+   "path": "textures/rhea/2k.jpg",
+   "body": "rhea",
+   "level": 2,
+   "bytes": 654865,
+   "sha256": "812b9e579e27d2bb4b11c4edbbad19e29d44053234c855a79e5c833742378b58"
+  },
+  {
+   "path": "textures/rhea/4k.jpg",
+   "body": "rhea",
+   "level": 4,
+   "bytes": 2196991,
+   "sha256": "3b00e109e85f8bd23faff02ddb2972e0f6f8c41c70ad4411e198e4ac35f7b591"
+  },
+  {
+   "path": "textures/rhea/8k.jpg",
+   "body": "rhea",
+   "level": 8,
+   "bytes": 6037786,
+   "sha256": "c0c4a1587078775867f105bb21c0f120b831e6d0f8208cde837aa021629f129b"
+  },
+  {
+   "path": "textures/saturn/1k.jpg",
+   "body": "saturn",
+   "level": 1,
+   "bytes": 38643,
+   "sha256": "c159068a07464a79fad7cccca022f2e01fe2f648efef536417dab59c0dbd5d59"
+  },
+  {
+   "path": "textures/saturn/2k.jpg",
+   "body": "saturn",
+   "level": 2,
+   "bytes": 150860,
+   "sha256": "e639276a1408203f04733d272dbf7ec350df9d66c15f5d86ce90f6f1200e4527"
+  },
+  {
+   "path": "textures/sun/1k.jpg",
+   "body": "sun",
+   "level": 1,
+   "bytes": 130314,
+   "sha256": "f03747355b7d9c65cdee4d82af4978eb5464f1ebb522afae16edbf12a185af4e"
+  },
+  {
+   "path": "textures/sun/2k.jpg",
+   "body": "sun",
+   "level": 2,
+   "bytes": 444658,
+   "sha256": "2f17b36ceaa88c1d6c61d848065a9ddf7302587fcd781345bc38792d855dfcfa"
+  },
+  {
+   "path": "textures/tethys/1k.jpg",
+   "body": "tethys",
+   "level": 1,
+   "bytes": 172058,
+   "sha256": "e79b62c3c187780a928988dd8fa3a98cd90b43826b28d9956a23b964b2338c47"
+  },
+  {
+   "path": "textures/tethys/2k.jpg",
+   "body": "tethys",
+   "level": 2,
+   "bytes": 630067,
+   "sha256": "c49ab352ddc03186102edfaafad8ccc5a12ae8a240c3126d0be7f8a1a0493a64"
+  },
+  {
+   "path": "textures/tethys/4k.jpg",
+   "body": "tethys",
+   "level": 4,
+   "bytes": 2030340,
+   "sha256": "1a3dab44287cf14283577a5bdfa113cf67b44890a4bbb2e3822225f304bb7caa"
+  },
+  {
+   "path": "textures/tethys/8k.jpg",
+   "body": "tethys",
+   "level": 8,
+   "bytes": 5467562,
+   "sha256": "1ef175f3971be51100569e348291fa3577c3a831c38aaec0d53663c45bc76f92"
+  },
+  {
+   "path": "textures/titan/1k.jpg",
+   "body": "titan",
+   "level": 1,
+   "bytes": 12638,
+   "sha256": "0807c1cfa6b6b876f51d02c122cd4d1ee45c7dead2e8f2eb418d103c25fa4ba9"
+  },
+  {
+   "path": "textures/titan/2k.jpg",
+   "body": "titan",
+   "level": 2,
+   "bytes": 34072,
+   "sha256": "56777f232184b5f17e1d7309f1a8b83752efff90a1f200b40a0dc114d4b1b88b"
+  },
+  {
+   "path": "textures/titan/4k.jpg",
+   "body": "titan",
+   "level": 4,
+   "bytes": 100399,
+   "sha256": "d7b261cb368e88e3793601c412c1887add92d18820f089a3819732be5679d2fe"
+  },
+  {
+   "path": "textures/triton/1k.jpg",
+   "body": "triton",
+   "level": 1,
+   "bytes": 61662,
+   "sha256": "855941acebb97648b7ddce8f3a0be0a55ca84374608e2266820a6d9a33c79363"
+  },
+  {
+   "path": "textures/triton/2k.jpg",
+   "body": "triton",
+   "level": 2,
+   "bytes": 207080,
+   "sha256": "2dae1a56871184b21e2cd2ec175f5567294b7d5c0e3dd6ba7c21c6e84b224ab2"
+  },
+  {
+   "path": "textures/triton/4k.jpg",
+   "body": "triton",
+   "level": 4,
+   "bytes": 671270,
+   "sha256": "fe13e6ab890da5a2e39c3b14a1b8df5fa794c357945f66792c7b02602ac5f75f"
+  },
+  {
+   "path": "textures/triton/8k.jpg",
+   "body": "triton",
+   "level": 8,
+   "bytes": 1862222,
+   "sha256": "3a5098d924f657b3159bd90e67bcaca8e625ca33a26b569fb1d66fb364169b87"
+  },
+  {
+   "path": "textures/uranus/1k.jpg",
+   "body": "uranus",
+   "level": 1,
+   "bytes": 11157,
+   "sha256": "1036e70aedc548ff516d7354e6ed7f339501311f6a875070a08d6fd8ccc0c70a"
+  },
+  {
+   "path": "textures/uranus/2k.jpg",
+   "body": "uranus",
+   "level": 2,
+   "bytes": 36808,
+   "sha256": "152c1b18f766e379f14f94f6bc7c0003cb1dc1bc8403cc54bac8a944c039b3f6"
+  },
+  {
+   "path": "textures/venus/1k.jpg",
+   "body": "venus",
+   "level": 1,
+   "bytes": 43410,
+   "sha256": "98880f83334dc4458f3a747ed60396149ec1dfcd64c5b0c7f192c5245bd6953b"
+  },
+  {
+   "path": "textures/venus/2k.jpg",
+   "body": "venus",
+   "level": 2,
+   "bytes": 178622,
+   "sha256": "474f9646e57b6bdbd2fb49bc927bc63d6412b8b7af9436b77e7a274677233116"
+  }
+ ],
+ "sources": {
+  "moon": {
+   "url": "https://svs.gsfc.nasa.gov/vis/a000000/a004700/a004720/lroc_color_poles_8k.tif",
+   "credit": "NASA SVS · LRO LROC WAC",
+   "processing": "keep"
+  },
+  "mercury": {
+   "url": "https://planetarymaps.usgs.gov/mosaic/Mercury_MESSENGER_MDIS_Basemap_EnhancedColor_Mosaic_Global_665m.tif",
+   "credit": "USGS · MESSENGER MDIS",
+   "processing": "desat"
+  },
+  "mars": {
+   "url": "https://planetarymaps.usgs.gov/mosaic/Mars_Viking_ClrMosaic_global_925m.tif",
+   "credit": "USGS · Viking Orbiter color",
+   "processing": "keep"
+  },
+  "jupiter": {
+   "url": "https://assets.science.nasa.gov/content/dam/science/psd/photojournal/pia/pia07/pia07782/PIA07782.tif",
+   "credit": "NASA/JPL · Cassini ISS (PIA07782)",
+   "processing": "keep"
+  },
+  "io": {
+   "url": "https://planetarymaps.usgs.gov/mosaic/Io_GalileoSSI-Voyager_Global_Mosaic_1km.tif",
+   "credit": "USGS · Galileo SSI + Voyager",
+   "processing": "tint"
+  },
+  "europa": {
+   "url": "https://planetarymaps.usgs.gov/mosaic/Europa_Voyager_GalileoSSI_global_mosaic_500m.tif",
+   "credit": "USGS · Galileo SSI + Voyager",
+   "processing": "tint"
+  },
+  "ganymede": {
+   "url": "https://planetarymaps.usgs.gov/mosaic/Ganymede_Voyager_GalileoSSI_global_mosaic_1km.tif",
+   "credit": "USGS · Galileo SSI + Voyager",
+   "processing": "tint"
+  },
+  "callisto": {
+   "url": "https://planetarymaps.usgs.gov/mosaic/Callisto_Voyager_GalileoSSI_global_mosaic_1km.tif",
+   "credit": "USGS · Galileo SSI + Voyager",
+   "processing": "tint"
+  },
+  "enceladus": {
+   "url": "https://planetarymaps.usgs.gov/mosaic/Enceladus_Cassini_mosaic_global_110m.tif",
+   "credit": "USGS · Cassini ISS",
+   "processing": "tint"
+  },
+  "titan": {
+   "url": "https://planetarymaps.usgs.gov/mosaic/Titan_ISS_P19658_Mosaic_Global_4km.tif",
+   "credit": "USGS · Cassini ISS 938 nm",
+   "processing": "haze"
+  },
+  "dione": {
+   "url": "https://assets.science.nasa.gov/content/dam/science/psd/photojournal/pia/pia18/pia18434/PIA18434.tif",
+   "credit": "NASA/JPL · Cassini ISS (PIA18434)",
+   "processing": "desat"
+  },
+  "rhea": {
+   "url": "https://assets.science.nasa.gov/content/dam/science/psd/photojournal/pia/pia18/pia18438/PIA18438.tif",
+   "credit": "NASA/JPL · Cassini ISS (PIA18438)",
+   "processing": "desat"
+  },
+  "tethys": {
+   "url": "https://assets.science.nasa.gov/content/dam/science/psd/photojournal/pia/pia18/pia18439/PIA18439.tif",
+   "credit": "NASA/JPL · Cassini ISS (PIA18439)",
+   "processing": "desat"
+  },
+  "mimas": {
+   "url": "https://assets.science.nasa.gov/content/dam/science/psd/photojournal/pia/pia18/pia18437/PIA18437.tif",
+   "credit": "NASA/JPL · Cassini ISS (PIA18437)",
+   "processing": "desat"
+  },
+  "iapetus": {
+   "url": "https://assets.science.nasa.gov/content/dam/science/psd/photojournal/pia/pia18/pia18436/PIA18436.tif",
+   "credit": "NASA/JPL · Cassini ISS (PIA18436)",
+   "processing": "desat"
+  },
+  "triton": {
+   "url": "https://planetarymaps.usgs.gov/mosaic/Triton_Voyager2_ClrMosaic_GlobalFill_600m.tif",
+   "credit": "USGS · Voyager 2",
+   "processing": "desat"
+  },
+  "pluto": {
+   "url": "https://planetarymaps.usgs.gov/mosaic/Pluto_NewHorizons_Global_Mosaic_300m_Jul2017_8bit.tif",
+   "credit": "USGS · New Horizons LORRI/MVIC",
+   "processing": "tint"
+  },
+  "charon": {
+   "url": "https://planetarymaps.usgs.gov/mosaic/Charon_NewHorizons_Global_Mosaic_300m_Jul2017_8bit.tif",
+   "credit": "USGS · New Horizons LORRI",
+   "processing": "tint"
+  },
+  "phobos": {
+   "url": "https://planetarymaps.usgs.gov/mosaic/Phobos_Viking_Mosaic_40ppd_DLRcontrol.tif",
+   "credit": "USGS · Viking / DLR",
+   "processing": "tint"
+  },
+  "sun": {
+   "url": "https://www.solarsystemscope.com/textures/",
+   "credit": "Solar System Scope (CC BY 4.0)",
+   "processing": "keep"
+  },
+  "venus": {
+   "url": "https://www.solarsystemscope.com/textures/",
+   "credit": "Solar System Scope (CC BY 4.0)",
+   "processing": "keep"
+  },
+  "saturn": {
+   "url": "https://www.solarsystemscope.com/textures/",
+   "credit": "Solar System Scope (CC BY 4.0)",
+   "processing": "keep"
+  },
+  "uranus": {
+   "url": "https://www.solarsystemscope.com/textures/",
+   "credit": "Solar System Scope (CC BY 4.0)",
+   "processing": "keep"
+  },
+  "neptune": {
+   "url": "https://www.solarsystemscope.com/textures/",
+   "credit": "Solar System Scope (CC BY 4.0)",
+   "processing": "keep"
+  },
+  "earth": {
+   "url": "https://visibleearth.nasa.gov/",
+   "credit": "NASA Visible Earth: Blue Marble, Black Marble",
+   "processing": "keep"
+  }
+ }
+}

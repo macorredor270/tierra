@@ -1,8 +1,8 @@
 import * as THREE from 'three';
 import type { Body } from './data';
-import { MOON_TEXTURES } from './catalog';
 import { atmosphereShader, cloudsShader, earthShader, ringShader, sunShader } from './shaders';
 import { shadowUniforms, withShadows, type RingShadow } from './shadows';
+import { textureKey, texturePath } from './textures';
 
 export interface BodyView {
   body: Body;
@@ -15,6 +15,9 @@ export interface BodyView {
   orientSlot: number;
   uniforms?: Record<string, THREE.IUniform>;
   ringShadow?: RingShadow;
+  /** Carpeta de texturas y nivel cargado (0 = ninguno). */
+  texKey: string | null;
+  texLevel: number;
 }
 
 const sphere = new THREE.SphereGeometry(1, 96, 64);
@@ -58,7 +61,10 @@ function orientSlot(b: Body): number {
   return -1;
 }
 
-export function createBodyView(b: Body, tex: Tex, earthQuality = 4): BodyView {
+/** Crea el cuerpo con su textura de 1K (arranque rápido); el motor sube luego de nivel. */
+export function createBodyView(b: Body, tex: Tex): BodyView {
+  const key = textureKey(b);
+  const level = 1;
   const root = new THREE.Group();
   const spin = new THREE.Group();
   root.add(spin);
@@ -68,7 +74,7 @@ export function createBodyView(b: Body, tex: Tex, earthQuality = 4): BodyView {
   let ringShadow: RingShadow | undefined;
 
   if (info.kind === 'star') {
-    uniforms = { map: { value: tex(info.texture!) }, time: { value: 0 } };
+    uniforms = { map: { value: tex(texturePath('sun', level)) }, time: { value: 0 } };
     mesh = new THREE.Mesh(sphere, new THREE.ShaderMaterial({
       uniforms, vertexShader: sunShader.vertex, fragmentShader: sunShader.fragment,
     }));
@@ -78,12 +84,11 @@ export function createBodyView(b: Body, tex: Tex, earthQuality = 4): BodyView {
     glow.scale.setScalar(info.radius * 9);
     root.add(glow);
   } else if (info.name === 'Tierra') {
-    const q = earthQuality;
-    const clouds = tex(`earth/clouds-${q}k.jpg`, false);
+    const clouds = tex(texturePath('earth', level, 'clouds'), false);
     clouds.wrapS = THREE.RepeatWrapping;
     uniforms = {
-      dayMap: { value: tex(`earth/day-${q}k.jpg`) },
-      nightMap: { value: tex(`earth/night-${q}k.jpg`) },
+      dayMap: { value: tex(texturePath('earth', level, 'day')) },
+      nightMap: { value: tex(texturePath('earth', level, 'night')) },
       waterMap: { value: tex('earth/water-4k.png', false) },
       cloudsMap: { value: clouds },
       sunPos: { value: new THREE.Vector3() },
@@ -101,16 +106,15 @@ export function createBodyView(b: Body, tex: Tex, earthQuality = 4): BodyView {
     mesh.add(cloudMesh);
     mesh.add(atmosphere(uniforms.sunPos, 0x6fb4ff, 1.035, 1.4, b.index));
   } else {
-    const file = info.texture ?? (b.jplName ? MOON_TEXTURES[b.jplName] : undefined);
     const shade = new THREE.Color(info.color);
-    if (b.info.kind === 'moon' && !file) shade.offsetHSL(0, 0, ((b.index * 37) % 11 - 5) / 60);
+    if (b.info.kind === 'moon' && !key) shade.offsetHSL(0, 0, ((b.index * 37) % 11 - 5) / 60);
     const mat = new THREE.MeshStandardMaterial({
-      map: file ? tex(file) : null,
-      color: file ? 0xffffff : shade,
+      map: key ? tex(texturePath(key, level)) : null,
+      color: key ? 0xffffff : shade,
       roughness: 1,
       metalness: 0,
     });
-    mesh = new THREE.Mesh(b.info.kind === 'moon' && !file ? lowSphere : sphere, mat);
+    mesh = new THREE.Mesh(b.info.kind === 'moon' && !key ? lowSphere : sphere, mat);
     if (info.name === 'Saturno') {
       ringShadow = {
         uniforms: {
@@ -139,7 +143,7 @@ export function createBodyView(b: Body, tex: Tex, earthQuality = 4): BodyView {
     uniforms = { sunPos: { value: new THREE.Vector3() }, planetPos: { value: new THREE.Vector3() } };
     spin.add(saturnRings(tex, uniforms));
   }
-  return { body: b, root, spin, mesh, orientSlot: orientSlot(b), uniforms, ringShadow };
+  return { body: b, root, spin, mesh, orientSlot: orientSlot(b), uniforms, ringShadow, texKey: key, texLevel: key ? level : 0 };
 }
 
 function atmosphere(sunPos: THREE.IUniform, color: number, scale: number, intensity: number, selfId: number) {

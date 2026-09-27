@@ -21,7 +21,7 @@ El sistema solar completo en el navegador, con las posiciones **reales** de cada
 
 ## Precisión (contra JPL Horizons / DE441)
 
-`cargo test` compara las posiciones calculadas con los vectores de Horizons:
+En la rama `DECOMPILED`, `cargo test` compara las posiciones calculadas con los vectores de Horizons:
 
 - Planetas, 1800–2050: menos de 0,02° en la mayoría de fechas; el peor caso es Saturno, con 0,17°.
 - Planetas, 1000 a.C.–2500 d.C.: por debajo de 0,32°.
@@ -30,8 +30,7 @@ El sistema solar completo en el navegador, con las posiciones **reales** de cada
 ## Estructura
 
 ```
-crates/astro-core/   Rust: tiempo, Kepler, tablas JPL, marcos, rotación IAU, lunas, cuerpos pequeños
-crates/astro-wasm/   puente wasm-bindgen: estado de todo el sistema en buffers para JS
+web/src/wasm/        motor Rust ya compilado a WebAssembly (el fuente está en la rama DECOMPILED)
 scripts/fetch_data.py  descarga los datos de JPL (SSD, SBDB, Horizons)
 web/src/engine.ts    escena Three.js: origen flotante, vuelos de cámara, órbitas, marcadores
 web/src/shaders.ts   GLSL: Sol, Tierra día/noche, atmósferas, anillos con sombra
@@ -53,13 +52,13 @@ Lo más fácil: el script detecta tu sistema, instala lo que falte y abre la app
 powershell -ExecutionPolicy Bypass -File dev.ps1 # Windows
 ```
 
-A mano (rama DECOMPILED): Rust con el target `wasm32-unknown-unknown`, `wasm-pack` y Node 20+.
+A mano en esta rama (COMPILED) solo hace falta Node 20+:
 
 ```bash
 npm install
-npm run dev        # compila el WASM y abre Vite
-cargo test         # valida las efemérides contra Horizons
-npm run data       # vuelve a descargar los datos de JPL (opcional)
+npm run dev
 ```
+
+Para tocar el motor en Rust o ejecutar los tests contra Horizons, usa la rama `DECOMPILED`.
 
 Texturas planetarias: Solar System Scope (CC BY 4.0) y NASA Visible Earth. Este proyecto no está afiliado a NASA ni a JPL.

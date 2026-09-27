@@ -4,9 +4,8 @@
   "version": "1.0.0",
   "type": "module",
   "scripts": {
-    "wasm": "wasm-pack build crates/astro-wasm --release --target web --out-dir ../../web/src/wasm --no-pack",
-    "dev": "npm run wasm && vite",
-    "build": "npm run wasm && tsc --noEmit && vite build",
+    "dev": "vite",
+    "build": "tsc --noEmit && vite build",
     "preview": "vite preview",
     "data": "python3 scripts/fetch_data.py"
   },

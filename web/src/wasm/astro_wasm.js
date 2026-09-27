@@ -19,6 +19,25 @@ export class Solar {
         return ret >>> 0;
     }
     /**
+     * Eventos astronómicos entre dos fechas (días julianos UTC) como JSON:
+     * `[{"jd": día juliano UTC, "type": ..., ...}]`. Los planetas van con su índice de cuerpo.
+     * @param {number} jd_start_utc
+     * @param {number} jd_end_utc
+     * @returns {string}
+     */
+    static events_json(jd_start_utc, jd_end_utc) {
+        let deferred1_0;
+        let deferred1_1;
+        try {
+            const ret = wasm.solar_events_json(jd_start_utc, jd_end_utc);
+            deferred1_0 = ret[0];
+            deferred1_1 = ret[1];
+            return getStringFromWasm0(ret[0], ret[1]);
+        } finally {
+            wasm.__wbindgen_free(deferred1_0, deferred1_1, 1);
+        }
+    }
+    /**
      * Día juliano UTC para un instante `Date.now()`.
      * @param {number} ms
      * @returns {number}

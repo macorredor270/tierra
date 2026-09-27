@@ -74,6 +74,11 @@ Plutón usa también una tabla de Horizons (1950–2100) en lugar de su órbita 
 
 Datos: `scripts/fetch_spacecraft.py` → `web/public/data/spacecraft.bin`.
 
+## Calendario astronómico y tours
+
+- **Calendario** (tecla **C**): el motor en Rust busca eclipses de Sol y de Luna, oposiciones de los planetas exteriores y máximas elongaciones de Mercurio y Venus. Un clic salta a ese instante con la cámara bien colocada (el eclipse solar se ve desde la Luna, el lunar desde el Sol). Los tests lo comparan con el catálogo de la NASA: los 8 eclipses solares de 2024 a 2027 salen con la hora a menos de 2,5 minutos y γ a menos de 0,0014; los 4 lunares de 2025–2026, a menos de 1 minuto.
+- **Tours guiados** (tecla **T**): *Gran Tour del sistema solar*, *El viaje de la Voyager 2* (1977–1989), *Los eclipses de 2026* y *Parker: tocando el Sol*. Avanzan solos o paso a paso. Se pueden enlazar con `?tour=voyager`.
+
 ## Enlaces compartibles
 
 La URL admite parámetros para abrir un momento concreto:
@@ -85,6 +90,7 @@ La URL admite parámetros para abrir un momento concreto:
 | `focus` | `Tierra`, `Io`, `Titan` | Enfoca ese cuerpo |
 | `dist` | `20000` | Distancia de la cámara en km |
 | `view` | `sol`, `luna` | Mira el cuerpo desde el Sol o desde otro cuerpo |
+| `tour` | `gran-tour`, `voyager`, `eclipses-2026`, `parker` | Arranca un tour guiado |
 
 Por ejemplo, `?t=2026-03-03T11:33Z&focus=Luna&view=sol` abre el eclipse lunar total del 3 de marzo de 2026.
 

@@ -6,6 +6,11 @@ export class Solar {
     [Symbol.dispose](): void;
     body_count(): number;
     /**
+     * Eventos astronómicos entre dos fechas (días julianos UTC) como JSON:
+     * `[{"jd": día juliano UTC, "type": ..., ...}]`. Los planetas van con su índice de cuerpo.
+     */
+    static events_json(jd_start_utc: number, jd_end_utc: number): string;
+    /**
      * Día juliano UTC para un instante `Date.now()`.
      */
     static jd_from_unix_ms(ms: number): number;
@@ -62,6 +67,7 @@ export interface InitOutput {
     readonly memory: WebAssembly.Memory;
     readonly __wbg_solar_free: (a: number, b: number) => void;
     readonly solar_body_count: (a: number) => number;
+    readonly solar_events_json: (a: number, b: number) => [number, number];
     readonly solar_jd_from_unix_ms: (a: number) => number;
     readonly solar_new: (a: number, b: number, c: number, d: number, e: number, f: number, g: number, h: number) => number;
     readonly solar_orbit: (a: number, b: number, c: number) => [number, number];
@@ -75,8 +81,8 @@ export interface InitOutput {
     readonly solar_update: (a: number, b: number) => void;
     readonly solar_update_small: (a: number, b: number, c: number, d: number) => void;
     readonly __wbindgen_externrefs: WebAssembly.Table;
-    readonly __wbindgen_malloc: (a: number, b: number) => number;
     readonly __wbindgen_free: (a: number, b: number, c: number) => void;
+    readonly __wbindgen_malloc: (a: number, b: number) => number;
     readonly __wbindgen_start: () => void;
 }
 

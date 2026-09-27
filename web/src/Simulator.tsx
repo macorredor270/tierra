@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import * as THREE from 'three';
-import { loadWorld, type World } from './data';
+import { findBody, loadWorld, norm, type World } from './data';
 import { Engine, type Layers, type Snapshot } from './engine';
 import { Loader } from './ui/Loader';
 import { TimeBar } from './ui/TimeBar';
@@ -9,6 +9,9 @@ import { InfoCard } from './ui/InfoCard';
 import { GraphicsPanel } from './ui/GraphicsPanel';
 import { StatsOverlay } from './ui/StatsOverlay';
 import type { Graphics } from './graphics';
+import { EventsPanel } from './ui/EventsPanel';
+import { TourPlayer, ToursPanel } from './ui/Tours';
+import { TOURS, type Tour } from './tours';
 
 export function Simulator({ onExit }: { onExit: () => void }) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -23,7 +26,8 @@ export function Simulator({ onExit }: { onExit: () => void }) {
   const [infoOpen, setInfoOpen] = useState(true);
   const [layers, setLayers] = useState<Layers | null>(null);
   const [graphics, setGraphics] = useState<Graphics | null>(null);
-  const [panel, setPanel] = useState<'info' | 'graphics'>('info');
+  const [panel, setPanel] = useState<'info' | 'graphics' | 'events' | 'tours'>('info');
+  const [tour, setTour] = useState<Tour | null>(() => TOURS.find((t) => t.id === new URLSearchParams(location.search).get('tour')) ?? null);
 
   useEffect(() => {
     let eng: Engine | null = null;
@@ -62,6 +66,8 @@ export function Simulator({ onExit }: { onExit: () => void }) {
       if (e.key === 'Escape') engine.overview();
       if (e.key === 'h' || e.key === 'H') onExit();
       if (e.key === 'g' || e.key === 'G') setPanel((p) => (p === 'graphics' ? 'info' : 'graphics'));
+      if (e.key === 'c' || e.key === 'C') setPanel((p) => (p === 'events' ? 'info' : 'events'));
+      if (e.key === 't' || e.key === 'T') setPanel((p) => (p === 'tours' ? 'info' : 'tours'));
     };
     addEventListener('keydown', onKey);
     return () => removeEventListener('keydown', onKey);
@@ -101,17 +107,27 @@ export function Simulator({ onExit }: { onExit: () => void }) {
             onLayers={updateLayers}
             onSelect={(i) => { engine.focusOn(i); setInfoOpen(true); setPanel('info'); }}
           />
-          <button
-            className={`glass fixed top-3.5 right-3.5 z-20 flex size-11 cursor-pointer items-center justify-center text-lg transition hover:border-accent/50 ${panel === 'graphics' ? 'border-accent/60 text-white' : 'text-slate-300'}`}
-            title="Ajustes gráficos (G)"
-            aria-label="Ajustes gráficos"
-            onClick={() => setPanel((p) => (p === 'graphics' ? 'info' : 'graphics'))}
-          >
-            <svg viewBox="0 0 24 24" className="size-5" fill="none" stroke="currentColor" strokeWidth="1.6">
-              <path d="M12 15.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7Z" />
-              <path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3h.1a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8v.1a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1Z" />
-            </svg>
-          </button>
+          <div className="fixed top-3.5 right-3.5 z-20 flex gap-2">
+            {([
+              ['tours', 'Tours guiados (T)', <path key="t" d="M8 5v14l11-7z" />],
+              ['events', 'Calendario astronómico (C)', <g key="c"><rect x="3.5" y="5" width="17" height="15" rx="2" /><path d="M3.5 10h17M8 3v4M16 3v4" /></g>],
+              ['graphics', 'Ajustes gráficos (G)', <g key="g"><path d="M12 15.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7Z" /><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3h.1a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8v.1a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1Z" /></g>],
+            ] as const).map(([id, title, icon]) => (
+              <button
+                key={id}
+                className={`glass flex size-11 cursor-pointer items-center justify-center transition hover:border-accent/50 ${panel === id ? 'border-accent/60 text-white' : 'text-slate-300'}`}
+                title={title}
+                aria-label={title}
+                aria-pressed={panel === id}
+                onClick={() => setPanel((p) => (p === id ? 'info' : id))}
+              >
+                <svg viewBox="0 0 24 24" className="size-5" fill="none" stroke="currentColor" strokeWidth="1.6">{icon}</svg>
+              </button>
+            ))}
+          </div>
+          {panel === 'events' && <EventsPanel engine={engine} world={world} fromMs={snap.ms} onClose={() => setPanel('info')} />}
+          {panel === 'tours' && <ToursPanel onStart={(t) => { setTour(t); setPanel('info'); }} onClose={() => setPanel('info')} />}
+          {tour && <TourPlayer key={tour.id} tour={tour} engine={engine} world={world} onEnd={() => setTour(null)} />}
           {panel === 'graphics' && graphics && (
             <GraphicsPanel engine={engine} graphics={graphics} onChange={updateGraphics} onClose={() => setPanel('info')} />
           )}
@@ -120,7 +136,7 @@ export function Simulator({ onExit }: { onExit: () => void }) {
             <InfoCard body={focusBody} world={world} snap={snap} onClose={() => setInfoOpen(false)} onSelect={(i) => engine.focusOn(i)} />
           )}
           <footer className="fixed bottom-3 left-1/2 z-[4] hidden -translate-x-1/2 text-[11px] whitespace-nowrap text-muted md:block">
-            arrastra para girar · rueda o pellizco para acercar · clic en un cuerpo para viajar · espacio pausa · esc vista general · G gráficos
+            arrastra para girar · rueda o pellizco para acercar · clic en un cuerpo para viajar · espacio pausa · esc vista general · T tours · C calendario · G gráficos
           </footer>
         </>
       )}
@@ -156,11 +172,3 @@ function applyUrl(engine: Engine, world: World): void {
   }
 }
 
-const EN = ['sun', 'mercury', 'venus', 'earth', 'mars', 'jupiter', 'saturn', 'uranus', 'neptune', 'ceres', 'pluto', 'eris', 'makemake', 'haumea'];
-const norm = (s: string) => s.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().trim();
-
-/** Busca un cuerpo por nombre en español o inglés, con o sin tildes ("Plutón", "pluto", "pluton"). */
-function findBody(world: World, name: string) {
-  const n = norm(name);
-  return world.bodies.find((b) => norm(b.info.name) === n || (b.jplName && norm(b.jplName) === n) || EN[b.index] === n);
-}

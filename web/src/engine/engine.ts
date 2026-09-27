@@ -4,11 +4,12 @@ import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
 import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
 import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
 import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
+import { ShaderPass } from 'three/addons/postprocessing/ShaderPass.js';
 import { Solar } from '../wasm/astro_wasm.js';
 import type { Body, World } from '../data/world';
 import { createBodyView, createTextureLoader, type BodyView } from './bodies';
 import { Clock } from './clock';
-import { pointsShader, smallShader } from './shaders';
+import { pointsShader, sanitizeShader, smallShader } from './shaders';
 import { SMALL_CLASS_COLORS } from '../data/catalog';
 import { detectHardware, initialGraphics, saveGraphics, type Graphics, type HardwareInfo } from './graphics';
 import { SmallPool } from './smallPool';
@@ -198,6 +199,7 @@ export class Engine {
     this.composer = new EffectComposer(this.renderer, this.target);
     this.composer.addPass(new RenderPass(this.scene, this.camera));
     this.bloom = new UnrealBloomPass(new THREE.Vector2(innerWidth, innerHeight), 0.7, 0.6, 1.0);
+    this.composer.addPass(new ShaderPass(sanitizeShader));
     this.composer.addPass(this.bloom);
     this.composer.addPass(new OutputPass());
 
@@ -686,6 +688,9 @@ export class Engine {
       }
       if (v.uniforms?.sunPos) (v.uniforms.sunPos.value as THREE.Vector3).set(...sun);
       if (v.atmo) {
+        // Planeta de pocos píxeles: la atmósfera no se ve y es donde peor va la precisión
+        const distCam = this.camera.position.distanceTo(v.root.position);
+        v.atmo.mesh.visible = (v.body.info.radius / distCam) * this.pxPerRad > 3;
         const u = v.atmo.uniforms;
         (u.center.value as THREE.Vector3).copy(v.root.position);
         (u.sunPos.value as THREE.Vector3).set(...sun);

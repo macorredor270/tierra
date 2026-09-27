@@ -309,7 +309,9 @@ export const scatteringShader = {
       float odR = 0.0, odM = 0.0;
       for (int i = 0; i < N; i++) {
         vec3 p = ro + rd * (t0 + ds * (float(i) + 0.5));
-        float h = length(p) - planetR;
+        // max(0): lejos del planeta la precisión de float32 puede dar alturas negativas enormes
+        // y exp(-h/H) desbordaría a infinito
+        float h = max(length(p) - planetR, 0.0);
         float dR = exp(-h / hR) * ds, dM = exp(-h / hM) * ds;
         odR += dR; odM += dM;
         // Hacia el Sol: si la Tierra lo tapa, este punto está en la sombra del planeta
@@ -319,7 +321,7 @@ export const scatteringShader = {
         float dl = tl.y / float(L);
         float lR = 0.0, lM = 0.0;
         for (int j = 0; j < L; j++) {
-          float hl = length(p + sd * dl * (float(j) + 0.5)) - planetR;
+          float hl = max(length(p + sd * dl * (float(j) + 0.5)) - planetR, 0.0);
           lR += exp(-hl / hR) * dl;
           lM += exp(-hl / hM) * dl;
         }
@@ -371,6 +373,30 @@ export const coronaShader = {
       k *= smoothstep(extent, extent * 0.55, r);
       vec3 c = mix(vec3(1.0, 0.86, 0.62), vec3(1.0, 0.97, 0.9), smoothstep(1.0, 2.5, r));
       gl_FragColor = vec4(c * k * 0.32, 1.0);
+    }
+  `,
+};
+
+/**
+ * Filtro de seguridad antes del bloom: un solo píxel NaN o infinito se difuminaría por toda la
+ * pantalla y la dejaría negra. Se sustituye por negro y se acota el HDR al rango de half float.
+ */
+export const sanitizeShader = {
+  uniforms: { tDiffuse: { value: null } },
+  vertexShader: /* glsl */ `
+    varying vec2 vUv;
+    void main() {
+      vUv = uv;
+      gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+    }
+  `,
+  fragmentShader: /* glsl */ `
+    uniform sampler2D tDiffuse;
+    varying vec2 vUv;
+    void main() {
+      vec4 c = texture2D(tDiffuse, vUv);
+      bool bad = any(isnan(c)) || any(isinf(c));
+      gl_FragColor = bad ? vec4(0.0, 0.0, 0.0, 1.0) : vec4(min(c.rgb, vec3(6.0e4)), c.a);
     }
   `,
 };

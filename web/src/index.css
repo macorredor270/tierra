@@ -12,6 +12,7 @@
 
 @layer base {
   html, body, #root { @apply h-full overflow-hidden bg-space text-slate-100 antialiased; }
+  html { scroll-behavior: smooth; }
   input[type="date"] { color-scheme: dark; }
   * { scrollbar-width: thin; scrollbar-color: rgb(255 255 255 / 0.15) transparent; }
 }
@@ -36,4 +37,26 @@
   .label.planet, .label.star { @apply text-[13px] font-medium tracking-wide; }
   .label.moon { @apply text-[11px] text-slate-300/75; }
   .label.minor { @apply text-[10px] text-slate-400/60; }
+}
+
+/* Globo de la portada: la textura se desplaza en horizontal y simula la rotación */
+.globe {
+  background-size: 200% 100%;
+  background-repeat: repeat-x;
+  animation: globe-spin 60s linear infinite;
+}
+.globe-clouds {
+  background-size: 200% 100%;
+  background-repeat: repeat-x;
+  mix-blend-mode: screen;
+  opacity: 0.85;
+  animation: globe-spin 45s linear infinite;
+  filter: grayscale(1) contrast(1.1);
+}
+@keyframes globe-spin {
+  from { background-position: 0% 50%; }
+  to { background-position: -200% 50%; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .globe, .globe-clouds { animation: none; }
 }

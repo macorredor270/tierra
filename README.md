@@ -11,6 +11,29 @@ El sistema solar completo en el navegador, con las posiciones **reales** de cada
 - **Filtros**: planetas, planetas enanos, lunas principales, lunas menores, órbitas, etiquetas y cada clase de cuerpo pequeño por separado.
 - **Escala real**: los tamaños y las distancias son los reales. Con profundidad logarítmica y origen flotante se puede ir de la superficie de Fobos a la órbita de Eris sin cortes ni temblores.
 
+## Portada e instalación de texturas
+
+Al abrir la web aparece una portada con un botón **Instalar texturas**: descarga una vez los mosaicos de todos los planetas y lunas en la calidad elegida (Medio 2K, Alto 4K o Ultra 8K), verifica cada archivo con su sha256 y los guarda en el navegador (Cache Storage con un Service Worker). Después, el simulador arranca al instante y funciona sin conexión; también se puede instalar como app (PWA). Sin instalar, las texturas se descargan sobre la marcha: primero en 1K y luego en la calidad elegida.
+
+## Texturas de todos los cuerpos
+
+`scripts/build_textures.py` descarga los mosaicos globales oficiales y los corrige para que se vean como a simple vista: los mapas científicos en gris (Ío, Europa, Plutón…) se colorean con la paleta real de cada cuerpo, los de color ampliado (Mercurio, lunas de Saturno) se desaturan, y los casquetes que ninguna nave fotografió se rellenan con un degradado suave.
+
+| Cuerpo | Fuente |
+|---|---|
+| Luna | NASA SVS · LRO LROC WAC |
+| Mercurio | USGS · MESSENGER MDIS |
+| Marte | USGS · Viking Orbiter en color |
+| Júpiter | NASA/JPL · Cassini (PIA07782) |
+| Ío, Europa, Ganímedes, Calisto | USGS · Galileo SSI + Voyager |
+| Titán, Encélado | USGS · Cassini ISS |
+| Dione, Rea, Tetis, Mimas, Jápeto | NASA/JPL · Cassini ISS (PIA18434–18439) |
+| Tritón | USGS · Voyager 2 |
+| Plutón, Caronte | USGS · New Horizons |
+| Fobos | USGS · Viking / DLR |
+| Tierra | NASA Visible Earth · Blue Marble, Black Marble |
+| Sol, Venus, Saturno, Urano, Neptuno | Solar System Scope (CC BY 4.0) |
+
 ## Gráficos
 
 El botón ⚙ (o la tecla **G**) abre el panel de ajustes gráficos:

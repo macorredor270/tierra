@@ -1,0 +1,14 @@
+{
+  "name": "Sistema Solar en tiempo real",
+  "short_name": "Sistema Solar",
+  "description": "El sistema solar con posiciones reales de NASA/JPL, en Rust + WebAssembly y WebGL.",
+  "start_url": "./#/simulador",
+  "scope": "./",
+  "display": "fullscreen",
+  "orientation": "any",
+  "background_color": "#02030a",
+  "theme_color": "#02030a",
+  "icons": [
+    { "src": "icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" }
+  ]
+}

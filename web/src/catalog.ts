@@ -18,7 +18,6 @@ export interface BodyInfo {
   gravity?: number;
   escape?: number;
   albedo?: number;
-  texture?: string;
   color: number;
   description: string;
 }
@@ -26,55 +25,55 @@ export interface BodyInfo {
 export const SUN_AND_PLANETS: BodyInfo[] = [
   {
     name: 'Sol', kind: 'star', radius: 695_700, massKg: 1.9885e30, density: 1.408, rotationDays: 25.38,
-    gravity: 274, escape: 617.6, texture: '2k_sun.jpg', color: 0xffd27a,
+    gravity: 274, escape: 617.6, color: 0xffd27a,
     description: 'Estrella de tipo G2V. Contiene el 99,86 % de la masa del sistema solar; su luz tarda 8 min 20 s en llegar a la Tierra.',
   },
   {
     name: 'Mercurio', kind: 'planet', radius: 2440.53, polarRadius: 2438.26, massKg: 0.330103e24, density: 5.4289,
     rotationDays: 58.6462, orbitYears: 0.2408467, gravity: 3.7, escape: 4.25, albedo: 0.106,
-    texture: '2k_mercury.jpg', color: 0xb5aca3,
+    color: 0xb5aca3,
     description: 'El planeta más cercano al Sol. Gira tres veces sobre sí mismo por cada dos vueltas al Sol (resonancia 3:2).',
   },
   {
     name: 'Venus', kind: 'planet', radius: 6051.8, massKg: 4.86731e24, density: 5.243,
     rotationDays: -243.018, orbitYears: 0.61519726, gravity: 8.87, escape: 10.36, albedo: 0.65,
-    texture: '2k_venus_atmosphere.jpg', color: 0xe8cda2,
+    color: 0xe8cda2,
     description: 'Gira al revés que casi todos los planetas y tan despacio que su día dura más que su año. Superficie a 465 °C bajo nubes de ácido sulfúrico.',
   },
   {
     name: 'Tierra', kind: 'planet', radius: 6378.1366, polarRadius: 6356.75, massKg: 5.97217e24, density: 5.5134,
     rotationDays: 0.99726968, orbitYears: 1.0000174, gravity: 9.8, escape: 11.19, albedo: 0.367,
-    texture: 'earth-day-4k.jpg', color: 0x6fa8ff,
+    color: 0x6fa8ff,
     description: 'El único mundo conocido con vida y con agua líquida estable en superficie. Mostrada con la hora real: el lado nocturno es el que está de noche ahora mismo.',
   },
   {
     name: 'Marte', kind: 'planet', radius: 3396.19, polarRadius: 3376.2, massKg: 0.641691e24, density: 3.934,
     rotationDays: 1.02595676, orbitYears: 1.8808476, gravity: 3.71, escape: 5.03, albedo: 0.15,
-    texture: '2k_mars.jpg', color: 0xd7744a,
+    color: 0xd7744a,
     description: 'Olympus Mons, el mayor volcán del sistema solar, mide 22 km de altura. Tiene dos lunas pequeñas e irregulares: Fobos y Deimos.',
   },
   {
     name: 'Júpiter', kind: 'planet', radius: 71492, polarRadius: 66854, massKg: 1898.125e24, density: 1.3262,
     rotationDays: 0.41354, orbitYears: 11.862615, gravity: 24.79, escape: 60.2, albedo: 0.52,
-    texture: '2k_jupiter.jpg', color: 0xd9b48f,
+    color: 0xd9b48f,
     description: 'Más de dos veces la masa del resto de planetas juntos. La Gran Mancha Roja es una tormenta mayor que la Tierra que dura siglos.',
   },
   {
     name: 'Saturno', kind: 'planet', radius: 60268, polarRadius: 54364, massKg: 568.317e24, density: 0.6871,
     rotationDays: 0.44401, orbitYears: 29.447498, gravity: 10.44, escape: 36.09, albedo: 0.47,
-    texture: '2k_saturn.jpg', color: 0xe6d3a3,
+    color: 0xe6d3a3,
     description: 'Su densidad media es menor que la del agua. Los anillos se extienden 280 000 km pero tienen unas decenas de metros de grosor.',
   },
   {
     name: 'Urano', kind: 'planet', radius: 25559, polarRadius: 24973, massKg: 86.8099e24, density: 1.27,
     rotationDays: -0.71833, orbitYears: 84.016846, gravity: 8.87, escape: 21.38, albedo: 0.51,
-    texture: '2k_uranus.jpg', color: 0x9fd8e0,
+    color: 0x9fd8e0,
     description: 'Gira tumbado, con el eje inclinado 98°: cada polo pasa 42 años seguidos de día y otros 42 de noche.',
   },
   {
     name: 'Neptuno', kind: 'planet', radius: 24764, polarRadius: 24341, massKg: 102.4092e24, density: 1.638,
     rotationDays: 0.67125, orbitYears: 164.79132, gravity: 11.15, escape: 23.56, albedo: 0.41,
-    texture: '2k_neptune.jpg', color: 0x5b7cff,
+    color: 0x5b7cff,
     description: 'Sus vientos son los más rápidos medidos en el sistema solar, de hasta 2100 km/h. Se descubrió por matemáticas antes de verse por telescopio.',
   },
 ];
@@ -87,7 +86,7 @@ export const DWARFS: BodyInfo[] = [
   },
   {
     name: 'Plutón', kind: 'dwarf', radius: 1188.3, massKg: 13024.6e18, density: 1.853, rotationDays: -6.3872,
-    orbitYears: 247.92065, gravity: 0.62, escape: 1.21, albedo: 0.3, texture: 'plutomap1k.jpg', color: 0xd8bfa4,
+    orbitYears: 247.92065, gravity: 0.62, escape: 1.21, albedo: 0.3, color: 0xd8bfa4,
     description: 'New Horizons lo visitó en 2015 y descubrió Sputnik Planitia, una llanura de hielo de nitrógeno con forma de corazón.',
   },
   {
@@ -117,8 +116,6 @@ export const MOON_NAMES_ES: Record<string, string> = {
   Prometheus: 'Prometeo', Kerberos: 'Cerbero', Hydra: 'Hidra', Pasiphae: 'Pasífae',
   Ananke: 'Ananké', Lysithea: 'Lisitea', Sinope: 'Sinope',
 };
-
-export const MOON_TEXTURES: Record<string, string> = { Moon: '2k_moon.jpg' };
 
 export const MOON_NOTES: Record<string, string> = {
   Moon: 'Siempre nos muestra la misma cara. Se aleja de la Tierra 3,8 cm al año.',

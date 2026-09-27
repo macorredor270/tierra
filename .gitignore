@@ -2,3 +2,5 @@ node_modules/
 dist/
 target/
 web/src/wasm/
+.texture-cache/
+__pycache__/

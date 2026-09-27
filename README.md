@@ -39,9 +39,21 @@ web/src/ui/          React + Tailwind: barra de tiempo, filtros, ficha de cada c
 web/public/data/     datos de JPL ya descargados
 ```
 
+## Ramas
+
+- **`COMPILED`**: incluye el motor WebAssembly ya compilado. Solo necesitas Node: `npm install && npm run dev`.
+- **`DECOMPILED`**: el código fuente completo (Rust incluido). El WASM se compila en tu máquina.
+
 ## Ejecutar
 
-Requisitos: Rust con el target `wasm32-unknown-unknown`, `wasm-pack` y Node 22.
+Lo más fácil: el script detecta tu sistema, instala lo que falte y abre la app.
+
+```bash
+./dev.sh                                         # macOS y Linux (también WSL)
+powershell -ExecutionPolicy Bypass -File dev.ps1 # Windows
+```
+
+A mano (rama DECOMPILED): Rust con el target `wasm32-unknown-unknown`, `wasm-pack` y Node 20+.
 
 ```bash
 npm install

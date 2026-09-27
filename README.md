@@ -11,6 +11,18 @@ El sistema solar completo en el navegador, con las posiciones **reales** de cada
 - **Filtros**: planetas, planetas enanos, lunas principales, lunas menores, órbitas, etiquetas y cada clase de cuerpo pequeño por separado.
 - **Escala real**: los tamaños y las distancias son los reales. Con profundidad logarítmica y origen flotante se puede ir de la superficie de Fobos a la órbita de Eris sin cortes ni temblores.
 
+## Gráficos
+
+El botón ⚙ (o la tecla **G**) abre el panel de ajustes gráficos:
+
+- **Detección del hardware**: identifica tu GPU, los núcleos de la CPU y la memoria, y propone un preset (Bajo, Medio, Alto o Ultra). El navegador pide la **GPU dedicada** (`powerPreference: high-performance`).
+- **Cálculo multinúcleo**: los 84k cuerpos pequeños se propagan en varios hilos de la CPU, cada uno con su propia instancia del motor Rust/WASM (Web Workers).
+- **Resolución**: escala de renderizado del 50 al 200 % y resolución dinámica que se ajusta sola para mantener los FPS.
+- **Calidad**: antialiasing MSAA (hasta 8x), texturas de la Tierra de la NASA en 2K, 4K u 8K, filtrado anisótropo, bloom, magnitud límite de las estrellas, densidad de asteroides y límite de FPS.
+- **Rendimiento**: contador con FPS, tiempo de CPU por frame, tiempo de cálculo de los asteroides, resolución real y draw calls.
+
+Los ajustes se guardan en el navegador.
+
 ## Fuentes de datos
 
 | Qué | Fuente |
@@ -21,6 +33,8 @@ El sistema solar completo en el navegador, con las posiciones **reales** de cada
 | Asteroides y cometas | JPL **SBDB Query API** (numerados con H < 15, todos los TNO y los cometas con e < 1) |
 | Orientación de los ejes | IAU WGCCRE 2015 (Archinal et al. 2018) |
 | Datos físicos | JPL *Planetary Physical Parameters* y *Satellite Physical Parameters* |
+| Estrellas | [HYG Database v4.1](https://github.com/astronexus/HYG-Database) (15.598 estrellas hasta magnitud 7, CC BY-SA 4.0) |
+| Tierra | NASA Visible Earth: Blue Marble Next Generation (relieve y batimetría), Black Marble 2016 (luces nocturnas) y nubes |
 
 ## Precisión (contra JPL Horizons / DE441)
 
@@ -57,7 +71,7 @@ Lo más fácil es usar el script de arranque. Detecta tu sistema (macOS, Linux o
 powershell -ExecutionPolicy Bypass -File dev.ps1 # Windows
 ```
 
-A mano en esta rama (COMPILED) solo hace falta Node 20+:
+A mano en esta rama solo hace falta Node 20+:
 
 ```bash
 npm install
@@ -66,8 +80,8 @@ npm run dev
 
 Para tocar el motor en Rust o ejecutar los tests contra Horizons, usa la rama `DECOMPILED`.
 
-Texturas planetarias: Solar System Scope (CC BY 4.0) y NASA Visible Earth. Este proyecto no está afiliado a NASA ni a JPL.
+Este proyecto no está afiliado a NASA ni a JPL.
 
 ## Licencia
 
-El código se publica bajo licencia [MIT](LICENSE). Las texturas planetarias no son parte del código: tienen su propia licencia (Solar System Scope, CC BY 4.0) y la de NASA Visible Earth. Los datos orbitales proceden de NASA/JPL.
+El código se publica bajo licencia [MIT](LICENSE). Las texturas y catálogos no son parte del código y conservan su licencia: texturas de la Tierra de NASA Visible Earth (dominio público), resto de planetas de Solar System Scope (CC BY 4.0) y catálogo de estrellas HYG (CC BY-SA 4.0). Los datos orbitales proceden de NASA/JPL.

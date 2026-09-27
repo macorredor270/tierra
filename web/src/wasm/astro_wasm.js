@@ -94,6 +94,21 @@ export class Solar {
         return v1;
     }
     /**
+     * Limita la propagación a los primeros `n` cuerpos pequeños (densidad gráfica).
+     * @param {number} n
+     */
+    set_small_limit(n) {
+        wasm.solar_set_small_limit(this.__wbg_ptr, n);
+    }
+    /**
+     * Fija el instante sin recalcular los cuerpos principales (lo usan los workers que solo
+     * propagan cuerpos pequeños).
+     * @param {number} jd_utc
+     */
+    set_time(jd_utc) {
+        wasm.solar_set_time(this.__wbg_ptr, jd_utc);
+    }
+    /**
      * @returns {number}
      */
     small_count() {

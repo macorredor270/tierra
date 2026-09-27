@@ -33,6 +33,15 @@ export class Solar {
      * Posiciones heliocéntricas de escena (km), 3 por cuerpo.
      */
     positions(): Float64Array;
+    /**
+     * Limita la propagación a los primeros `n` cuerpos pequeños (densidad gráfica).
+     */
+    set_small_limit(n: number): void;
+    /**
+     * Fija el instante sin recalcular los cuerpos principales (lo usan los workers que solo
+     * propagan cuerpos pequeños).
+     */
+    set_time(jd_utc: number): void;
     small_count(): number;
     small_ptr(): number;
     /**
@@ -59,6 +68,8 @@ export interface InitOutput {
     readonly solar_orientations: (a: number) => [number, number];
     readonly solar_parent_of: (a: number, b: number) => number;
     readonly solar_positions: (a: number) => [number, number];
+    readonly solar_set_small_limit: (a: number, b: number) => void;
+    readonly solar_set_time: (a: number, b: number) => void;
     readonly solar_small_count: (a: number) => number;
     readonly solar_small_ptr: (a: number) => number;
     readonly solar_update: (a: number, b: number) => void;

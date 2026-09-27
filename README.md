@@ -1,5 +1,8 @@
 # Sistema Solar en tiempo real
 
+> **Rama `COMPILED`**: lista para ejecutar. El motor de Rust ya viene compilado a WebAssembly, así que solo necesitas Node.
+> El código fuente en Rust y los tests están en la rama [`DECOMPILED`](../../tree/DECOMPILED).
+
 El sistema solar completo en el navegador, con las posiciones **reales** de cada cuerpo calculadas a partir de datos y métodos oficiales de NASA/JPL. El motor de efemérides está escrito en **Rust** y se compila a **WebAssembly**; el render usa **Three.js/WebGL** y la interfaz **React + Tailwind**.
 
 - **Tiempo real**: por defecto el instante es el de tu reloj, así que ves dónde está cada planeta y cada luna ahora mismo (y el lado nocturno de la Tierra es el que está de noche).
@@ -40,12 +43,14 @@ web/public/data/     datos de JPL ya descargados
 
 ## Ramas
 
-- **`COMPILED`**: incluye el motor WebAssembly ya compilado. Solo necesitas Node: `npm install && npm run dev`.
-- **`DECOMPILED`**: el código fuente completo (Rust incluido). El WASM se compila en tu máquina.
+| Rama | Qué contiene | Necesitas |
+|---|---|---|
+| **`COMPILED`** (esta) | App lista, con el motor WebAssembly ya compilado | Node 20+ |
+| [`DECOMPILED`](../../tree/DECOMPILED) | Todo el código fuente: Rust, tests contra Horizons, script de datos | Node 20+, Rust y wasm-pack |
 
 ## Ejecutar
 
-Lo más fácil: el script detecta tu sistema, instala lo que falte y abre la app.
+Lo más fácil es usar el script de arranque. Detecta tu sistema (macOS, Linux o Windows), instala Node si falta (preguntándote antes) y abre la app en `http://localhost:5173`.
 
 ```bash
 ./dev.sh                                         # macOS y Linux (también WSL)

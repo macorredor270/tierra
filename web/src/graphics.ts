@@ -14,6 +14,8 @@ export interface Graphics {
   bloomStrength: number;
   textures: TextureQuality;
   anisotropy: boolean;
+  /** Eclipses y sombras entre cuerpos (umbra y penumbra analíticas). */
+  shadows: boolean;
   stars: boolean;
   /** Magnitud límite del catálogo de estrellas (6 = a simple vista). */
   starLimit: number;
@@ -29,19 +31,19 @@ export interface Graphics {
 export const PRESETS: Record<Exclude<Preset, 'custom'>, Omit<Graphics, 'preset' | 'showStats' | 'workers'>> = {
   low: {
     renderScale: 0.85, dynamicResolution: true, msaa: 2, bloom: false, bloomStrength: 0.5, textures: 2,
-    anisotropy: false, stars: true, starLimit: 5.5, smallDensity: 0.25, fpsCap: 30,
+    anisotropy: false, shadows: true, stars: true, starLimit: 5.5, smallDensity: 0.25, fpsCap: 30,
   },
   medium: {
     renderScale: 1, dynamicResolution: true, msaa: 2, bloom: true, bloomStrength: 0.6, textures: 4,
-    anisotropy: true, stars: true, starLimit: 6.5, smallDensity: 0.5, fpsCap: 60,
+    anisotropy: true, shadows: true, stars: true, starLimit: 6.5, smallDensity: 0.5, fpsCap: 60,
   },
   high: {
     renderScale: 1, dynamicResolution: false, msaa: 4, bloom: true, bloomStrength: 0.7, textures: 4,
-    anisotropy: true, stars: true, starLimit: 7, smallDensity: 1, fpsCap: 0,
+    anisotropy: true, shadows: true, stars: true, starLimit: 7, smallDensity: 1, fpsCap: 0,
   },
   ultra: {
     renderScale: 1.5, dynamicResolution: false, msaa: 8, bloom: true, bloomStrength: 0.75, textures: 8,
-    anisotropy: true, stars: true, starLimit: 7, smallDensity: 1, fpsCap: 0,
+    anisotropy: true, shadows: true, stars: true, starLimit: 7, smallDensity: 1, fpsCap: 0,
   },
 };
 

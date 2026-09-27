@@ -23,12 +23,38 @@ El botón ⚙ (o la tecla **G**) abre el panel de ajustes gráficos:
 
 Los ajustes se guardan en el navegador.
 
+## Sombras y eclipses
+
+Las sombras se calculan en los shaders de forma analítica: el Sol es un disco de 695.700 km, y para cada píxel se mide qué fracción de ese disco tapan los cuerpos cercanos (área exacta de solape de dos círculos). Así salen la **umbra y la penumbra con su tamaño real**, sin mapas de sombras que se pixelen:
+
+- **Eclipses solares**: la sombra de la Luna sobre la Tierra, con las luces de las ciudades encendidas bajo la umbra.
+- **Eclipses lunares**: la Luna se vuelve rojiza dentro de la sombra de la Tierra, por la luz que refracta la atmósfera.
+- **Lunas sobre planetas**: las sombras de Ío, Europa o Ganímedes sobre Júpiter y las de las lunas de Saturno.
+- **Saturno**: el planeta proyecta sombra sobre los anillos y los anillos sobre el planeta.
+
+Para que los eclipses caigan en su sitio, la Luna se calcula con la teoría lunar de Meeus (ELP-2000/82 truncada): está a 3–10 km de su posición en Horizons, y el eclipse del 12 de agosto de 2026 sale con γ = 0,8977, el mismo valor que publica la NASA.
+
+## Enlaces compartibles
+
+La URL admite parámetros para abrir un momento concreto:
+
+| Parámetro | Ejemplo | Qué hace |
+|---|---|---|
+| `t` | `2026-08-12T17:46Z` | Salta a esa fecha y hora (UTC) en pausa |
+| `speed` | `100` | En lugar de pausar, arranca a esa velocidad |
+| `focus` | `Tierra`, `Io`, `Titan` | Enfoca ese cuerpo |
+| `dist` | `20000` | Distancia de la cámara en km |
+| `view` | `sol`, `luna` | Mira el cuerpo desde el Sol o desde otro cuerpo |
+
+Por ejemplo, `?t=2026-03-03T11:33Z&focus=Luna&view=sol` abre el eclipse lunar total del 3 de marzo de 2026.
+
 ## Fuentes de datos
 
 | Qué | Fuente |
 |---|---|
 | Planetas | E.M. Standish, *Keplerian Elements for Approximate Positions of the Major Planets* (JPL SSD). Tabla 1 (1800–2050) y Tabla 2 (3000 a.C.–3000 d.C.) |
-| Lunas | JPL SSD *Planetary Satellite Mean Elements*; las 45 principales, refinadas con elementos osculantes de **JPL Horizons** y el movimiento medio ajustado a 2 años de vectores |
+| La Luna | J. Meeus, *Astronomical Algorithms*, cap. 47 (ELP-2000/82 truncada); coeficientes de [soniakeys/meeus](https://github.com/soniakeys/meeus) (MIT) |
+| Resto de lunas | JPL SSD *Planetary Satellite Mean Elements*; las 45 principales, refinadas con elementos osculantes de **JPL Horizons** y el movimiento medio ajustado a 2 años de vectores |
 | Planetas enanos | Elementos osculantes de JPL Horizons |
 | Asteroides y cometas | JPL **SBDB Query API** (numerados con H < 15, todos los TNO y los cometas con e < 1) |
 | Orientación de los ejes | IAU WGCCRE 2015 (Archinal et al. 2018) |
@@ -42,7 +68,8 @@ En la rama `DECOMPILED`, `cargo test` compara las posiciones calculadas con los 
 
 - Planetas, 1800–2050: menos de 0,02° en la mayoría de fechas; el peor caso es Saturno, con 0,17°.
 - Planetas, 1000 a.C.–2500 d.C.: por debajo de 0,32°.
-- Io, Titán y Tritón: por debajo de 0,2° entre 2024 y 2029. La Luna, con elementos medios: 2–3°.
+- La Luna (teoría de Meeus): 3–10 km entre 2024 y 2029.
+- Io, Titán y Tritón: por debajo de 0,2° entre 2024 y 2029.
 
 ## Estructura
 

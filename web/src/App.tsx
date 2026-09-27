@@ -42,6 +42,7 @@ export function App() {
         setLayers({ ...eng.layers });
         setGraphics({ ...eng.graphics });
         eng.subscribe(setSnap);
+        applyUrl(eng, w);
       } catch (e) {
         setError(String(e));
       }
@@ -126,4 +127,30 @@ export function App() {
       <Loader status={error ?? status} progress={progress} done={ready && !error} error={!!error} />
     </div>
   );
+}
+
+/** Enlaces compartibles: ?t=2026-08-12T17:46Z&focus=Tierra&view=sol&speed=100 */
+function applyUrl(engine: Engine, world: World): void {
+  const q = new URLSearchParams(location.search);
+  const t = q.get('t');
+  if (t) {
+    const ms = Date.parse(t);
+    if (!Number.isNaN(ms)) {
+      engine.clock.jumpTo(ms);
+      const speed = Number(q.get('speed'));
+      if (speed > 0) engine.clock.setSpeed(speed);
+      else if (!engine.clock.paused) engine.clock.togglePause();
+    }
+  }
+  const name = q.get('focus')?.toLowerCase();
+  if (name) {
+    const body = world.bodies.find((b) => b.info.name.toLowerCase() === name || b.jplName?.toLowerCase() === name);
+    if (body) engine.focusOn(body.index, Number(q.get('dist')) || undefined, false);
+  }
+  const view = q.get('view')?.toLowerCase();
+  if (view === 'sol') engine.viewFrom(0);
+  else if (view) {
+    const from = world.bodies.find((b) => b.info.name.toLowerCase() === view || b.jplName?.toLowerCase() === view);
+    if (from) engine.viewFrom(from.index, true);
+  }
 }

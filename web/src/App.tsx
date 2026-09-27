@@ -6,6 +6,9 @@ import { Loader } from './ui/Loader';
 import { TimeBar } from './ui/TimeBar';
 import { Sidebar } from './ui/Sidebar';
 import { InfoCard } from './ui/InfoCard';
+import { GraphicsPanel } from './ui/GraphicsPanel';
+import { StatsOverlay } from './ui/StatsOverlay';
+import type { Graphics } from './graphics';
 
 export function App() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -19,6 +22,8 @@ export function App() {
   const [error, setError] = useState<string | null>(null);
   const [infoOpen, setInfoOpen] = useState(true);
   const [layers, setLayers] = useState<Layers | null>(null);
+  const [graphics, setGraphics] = useState<Graphics | null>(null);
+  const [panel, setPanel] = useState<'info' | 'graphics'>('info');
 
   useEffect(() => {
     let eng: Engine | null = null;
@@ -35,6 +40,7 @@ export function App() {
         eng = new Engine(canvasRef.current!, labelsRef.current!, w, manager);
         setEngine(eng);
         setLayers({ ...eng.layers });
+        setGraphics({ ...eng.graphics });
         eng.subscribe(setSnap);
       } catch (e) {
         setError(String(e));
@@ -53,6 +59,7 @@ export function App() {
       if ((e.target as HTMLElement).tagName === 'INPUT') return;
       if (e.code === 'Space') { e.preventDefault(); engine.clock.togglePause(); }
       if (e.key === 'Escape') engine.overview();
+      if (e.key === 'g' || e.key === 'G') setPanel((p) => (p === 'graphics' ? 'info' : 'graphics'));
     };
     addEventListener('keydown', onKey);
     return () => removeEventListener('keydown', onKey);
@@ -62,6 +69,12 @@ export function App() {
     if (!engine) return;
     engine.layers = l;
     setLayers({ ...l, small: [...l.small] });
+  };
+
+  const updateGraphics = (g: Graphics) => {
+    if (!engine) return;
+    engine.setGraphics(g);
+    setGraphics({ ...g });
   };
 
   const focusBody = world && snap ? world.bodies[snap.focus] : null;
@@ -84,13 +97,28 @@ export function App() {
             focus={snap.focus}
             layers={layers}
             onLayers={updateLayers}
-            onSelect={(i) => { engine.focusOn(i); setInfoOpen(true); }}
+            onSelect={(i) => { engine.focusOn(i); setInfoOpen(true); setPanel('info'); }}
           />
-          {focusBody && infoOpen && (
+          <button
+            className={`glass fixed top-3.5 right-3.5 z-20 flex size-11 cursor-pointer items-center justify-center text-lg transition hover:border-accent/50 ${panel === 'graphics' ? 'border-accent/60 text-white' : 'text-slate-300'}`}
+            title="Ajustes gráficos (G)"
+            aria-label="Ajustes gráficos"
+            onClick={() => setPanel((p) => (p === 'graphics' ? 'info' : 'graphics'))}
+          >
+            <svg viewBox="0 0 24 24" className="size-5" fill="none" stroke="currentColor" strokeWidth="1.6">
+              <path d="M12 15.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7Z" />
+              <path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3h.1a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8v.1a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1Z" />
+            </svg>
+          </button>
+          {panel === 'graphics' && graphics && (
+            <GraphicsPanel engine={engine} graphics={graphics} onChange={updateGraphics} onClose={() => setPanel('info')} />
+          )}
+          {graphics?.showStats && <StatsOverlay engine={engine} />}
+          {panel === 'info' && focusBody && infoOpen && (
             <InfoCard body={focusBody} world={world} snap={snap} onClose={() => setInfoOpen(false)} onSelect={(i) => engine.focusOn(i)} />
           )}
           <footer className="fixed bottom-3 left-1/2 z-[4] hidden -translate-x-1/2 text-[11px] whitespace-nowrap text-muted md:block">
-            arrastra para girar · rueda o pellizco para acercar · clic en un cuerpo para viajar · espacio pausa · esc vista general
+            arrastra para girar · rueda o pellizco para acercar · clic en un cuerpo para viajar · espacio pausa · esc vista general · G gráficos
           </footer>
         </>
       )}

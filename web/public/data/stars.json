@@ -1,0 +1,11 @@
+{
+ "count": 15598,
+ "layout": [
+  "ra_rad",
+  "dec_rad",
+  "mag_V",
+  "B-V"
+ ],
+ "limit_mag": 7.0,
+ "source": "HYG Database v4.1 (astronexus), ICRS J2000"
+}

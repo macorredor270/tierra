@@ -94,12 +94,12 @@ export const earthShader = {
       vec3 nightColor = texture2D(nightMap, vUv).rgb;
       float water = texture2D(waterMap, vUv).r;
       // Sombra de las nubes sobre la superficie
-      float cloud = texture2D(cloudsMap, vUv + vec2(cloudShift, 0.0)).a;
+      float cloud = texture2D(cloudsMap, vUv + vec2(cloudShift, 0.0)).r;
 
       vec3 lit = dayColor * max(ndl, 0.0) * (1.0 - cloud * 0.35);
       // Brillo especular solo en el agua
       vec3 h = normalize(l + v);
-      lit += vec3(1.0, 0.95, 0.85) * pow(max(dot(n, h), 0.0), 60.0) * water * 0.6 * day;
+      lit += vec3(1.0, 0.95, 0.85) * pow(max(dot(n, h), 0.0), 180.0) * water * 0.55 * day;
 
       vec3 night = nightColor * vec3(1.0, 0.8, 0.55) * 1.6 * (1.0 - cloud * 0.8);
       vec3 color = mix(night, lit, day);
@@ -124,10 +124,10 @@ export const cloudsShader = {
     varying vec3 vWorldPos;
     void main() {
       #include <logdepthbuf_fragment>
-      float c = texture2D(cloudsMap, vUv + vec2(cloudShift, 0.0)).a;
+      float c = texture2D(cloudsMap, vUv + vec2(cloudShift, 0.0)).r;
       float ndl = dot(normalize(vNormal), normalize(sunPos - vWorldPos));
       float light = smoothstep(-0.15, 0.3, ndl);
-      gl_FragColor = vec4(vec3(1.0) * (0.04 + 0.96 * light), c * 0.9);
+      gl_FragColor = vec4(vec3(1.0) * (0.04 + 0.96 * light), smoothstep(0.08, 0.95, c) * 0.92);
       #include <colorspace_fragment>
     }
   `,

@@ -10,6 +10,9 @@ import { createBodyView, createTextureLoader, type BodyView } from './bodies';
 import { Clock } from './clock';
 import { pointsShader, smallShader } from './shaders';
 import { SMALL_CLASS_COLORS } from './catalog';
+import { detectHardware, initialGraphics, saveGraphics, type Graphics, type HardwareInfo } from './graphics';
+import { SmallPool } from './smallPool';
+import { createStars } from './stars';
 
 export const AU = 149_597_870.7;
 const GM_SUN = 1.32712440018e11; // km³/s²
@@ -24,6 +27,18 @@ export interface Layers {
   labels: boolean;
   minorMoons: boolean;
   small: boolean[];
+}
+
+export interface Stats {
+  fps: number;
+  frameMs: number;
+  smallMs: number;
+  threads: number;
+  width: number;
+  height: number;
+  scale: number;
+  drawCalls: number;
+  triangles: number;
 }
 
 export interface Snapshot {
@@ -54,6 +69,9 @@ export class Engine {
   readonly bodies: Body[];
   layers: Layers = { planets: true, dwarfs: true, moons: true, orbits: true, labels: true, minorMoons: true, small: [true, true, true, true, true, true] };
   focus = 0;
+  readonly hw: HardwareInfo;
+  graphics: Graphics;
+  stats: Stats = { fps: 0, frameMs: 0, smallMs: 0, threads: 1, width: 0, height: 0, scale: 1, drawCalls: 0, triangles: 0 };
 
   private solar: Solar;
   private world: World;
@@ -78,17 +96,35 @@ export class Engine {
   private pxPerRad = 1;
   private tmp = new THREE.Vector3();
   private disposed = false;
+  private target: THREE.WebGLRenderTarget;
+  private pool: SmallPool | null = null;
+  private smallActive = 0;
+  private stars: THREE.Points | null = null;
+  private sky: THREE.Texture;
+  private textures: THREE.Texture[] = [];
+  private earthQuality = 0;
+  /** Factor de la resolución dinámica (1 = sin reducir). */
+  private dynScale = 1;
+  private lastFrame = 0;
+  private frameTimes: number[] = [];
+  private statsTimer = 0;
 
   constructor(canvas: HTMLCanvasElement, private labelsEl: HTMLElement, world: World, manager: THREE.LoadingManager) {
     this.world = world;
     this.solar = world.solar;
     this.bodies = world.bodies;
 
-    this.renderer = new THREE.WebGLRenderer({ canvas, antialias: true, logarithmicDepthBuffer: true, powerPreference: 'high-performance' });
-    this.renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+    // "high-performance" pide al navegador la GPU dedicada en equipos con dos gráficas.
+    // El antialiasing lo hace el render target multisample del postprocesado.
+    this.renderer = new THREE.WebGLRenderer({
+      canvas, antialias: false, stencil: false, logarithmicDepthBuffer: true, powerPreference: 'high-performance',
+    });
+    this.hw = detectHardware(this.renderer.getContext() as WebGL2RenderingContext);
+    this.graphics = initialGraphics(this.hw);
+    this.renderer.info.autoReset = false;
     this.renderer.setSize(innerWidth, innerHeight);
-    this.renderer.toneMapping = THREE.ACESFilmicToneMapping;
-    this.renderer.toneMappingExposure = 1.05;
+    this.renderer.toneMapping = THREE.AgXToneMapping;
+    this.renderer.toneMappingExposure = 1.15;
 
     this.camera = new THREE.PerspectiveCamera(50, innerWidth / innerHeight, 0.01, 1e12);
     this.controls = new OrbitControls(this.camera, canvas);
@@ -99,11 +135,17 @@ export class Engine {
     this.controls.rotateSpeed = 0.6;
     this.controls.maxDistance = 400 * AU;
 
-    const tex = createTextureLoader(manager, this.renderer);
-    const sky = tex('2k_stars_milky_way.jpg');
-    sky.mapping = THREE.EquirectangularReflectionMapping;
-    this.scene.background = sky;
-    this.scene.backgroundIntensity = 0.28;
+    const load = createTextureLoader(manager, this.renderer);
+    const tex = (file: string, srgb = true) => {
+      const t = load(file, srgb);
+      this.textures.push(t);
+      return t;
+    };
+    // La Vía Láctea queda como brillo difuso; las estrellas son puntos reales del catálogo HYG
+    this.sky = tex('2k_stars_milky_way.jpg');
+    this.sky.mapping = THREE.EquirectangularReflectionMapping;
+    this.scene.background = this.sky;
+    this.scene.backgroundIntensity = 0.1;
     // El mapa estelar está en coordenadas ecuatoriales; la escena, en la eclíptica
     this.scene.backgroundRotation.set(THREE.MathUtils.degToRad(23.4393), 0, 0);
     this.scene.add(new THREE.AmbientLight(0x223047, 0.18));
@@ -111,7 +153,7 @@ export class Engine {
 
     for (const b of this.bodies) {
       if (!b.resolved) continue;
-      const v = createBodyView(b, tex);
+      const v = createBodyView(b, tex, this.graphics.textures);
       v.spin.matrixAutoUpdate = false;
       this.views.set(b.index, v);
       this.scene.add(v.root);
@@ -122,17 +164,21 @@ export class Engine {
     this.buildLabels();
 
     // Sin un render target multisample el postprocesado pierde el antialiasing del canvas
-    const pr = this.renderer.getPixelRatio();
-    const target = new THREE.WebGLRenderTarget(innerWidth * pr, innerHeight * pr, {
-      samples: Math.min(4, this.renderer.capabilities.maxSamples),
-      type: THREE.HalfFloatType,
-    });
-    this.composer = new EffectComposer(this.renderer, target);
-    this.composer.setPixelRatio(pr);
+    this.target = new THREE.WebGLRenderTarget(innerWidth, innerHeight, { samples: 4, type: THREE.HalfFloatType });
+    this.composer = new EffectComposer(this.renderer, this.target);
     this.composer.addPass(new RenderPass(this.scene, this.camera));
     this.bloom = new UnrealBloomPass(new THREE.Vector2(innerWidth, innerHeight), 0.7, 0.6, 1.0);
     this.composer.addPass(this.bloom);
     this.composer.addPass(new OutputPass());
+
+    this.earthQuality = this.graphics.textures;
+    this.setGraphics(this.graphics);
+    createStars(this.renderer.getPixelRatio()).then((st) => {
+      if (this.disposed) return;
+      this.stars = st;
+      this.scene.add(st);
+      this.applyStars();
+    });
 
     this.update(true);
     this.camera.position.set(0, 1.4 * AU, 3.2 * AU);
@@ -146,6 +192,7 @@ export class Engine {
 
   dispose(): void {
     this.disposed = true;
+    this.pool?.dispose();
     this.renderer.setAnimationLoop(null);
     removeEventListener('resize', this.onResize);
     this.renderer.dispose();
@@ -177,6 +224,84 @@ export class Engine {
 
   overview(): void {
     this.focusOn(0, 4 * AU);
+  }
+
+  /** Aplica los ajustes gráficos en caliente y los guarda. */
+  setGraphics(g: Graphics): void {
+    const prev = this.graphics;
+    this.graphics = g;
+    saveGraphics(g);
+    if (!g.dynamicResolution) this.dynScale = 1;
+    this.applyResolution();
+    this.target.samples = Math.min(g.msaa, this.hw.maxSamples);
+    this.bloom.enabled = g.bloom;
+    this.bloom.strength = g.bloomStrength;
+    const aniso = g.anisotropy ? this.renderer.capabilities.getMaxAnisotropy() : 1;
+    for (const t of this.textures) {
+      if (t.anisotropy !== aniso) { t.anisotropy = aniso; if (t.image) t.needsUpdate = true; }
+    }
+    if (g.textures !== this.earthQuality) this.loadEarth(g.textures);
+    this.applyStars();
+    const active = Math.round(this.solar.small_count() * g.smallDensity);
+    if (active !== this.smallActive || g.workers !== prev.workers || (g.workers && !this.pool)) {
+      this.smallActive = active;
+      this.solar.set_small_limit(active);
+      this.smallPoints.geometry.setDrawRange(0, active);
+      this.pool?.dispose();
+      this.pool = null;
+      if (g.workers && this.hw.cores > 1) {
+        const threads = Math.max(1, Math.min(this.hw.cores - 1, 8));
+        const attr = this.smallPoints.geometry.getAttribute('position') as THREE.BufferAttribute;
+        const stride = this.world.smallMeta.stride;
+        this.pool = new SmallPool(this.world.smallRecords.subarray(0, active * stride), stride, threads, attr.array as Float32Array);
+      }
+    }
+  }
+
+  private applyResolution(): void {
+    const scale = Math.min(this.hw.pixelRatio * this.graphics.renderScale * this.dynScale, 3);
+    this.renderer.setPixelRatio(scale);
+    this.renderer.setSize(innerWidth, innerHeight);
+    this.composer.setPixelRatio(scale);
+    this.composer.setSize(innerWidth, innerHeight);
+    this.bloom.resolution.set(innerWidth * scale, innerHeight * scale);
+    for (const m of [this.markers.material, this.smallPoints.material, this.stars?.material]) {
+      if (m instanceof THREE.ShaderMaterial && m.uniforms.pixelRatio) m.uniforms.pixelRatio.value = scale;
+    }
+    this.stats.scale = scale;
+  }
+
+  private applyStars(): void {
+    if (!this.stars) return;
+    this.stars.visible = this.graphics.stars;
+    (this.stars.material as THREE.ShaderMaterial).uniforms.limit.value = this.graphics.starLimit;
+    (this.stars.material as THREE.ShaderMaterial).uniforms.pixelRatio.value = this.renderer.getPixelRatio();
+    this.scene.backgroundIntensity = this.graphics.stars ? 0.1 : 0.3;
+  }
+
+  /** Cambia las texturas de la Tierra (2K/4K/8K) cuando han terminado de cargar. */
+  private loadEarth(q: number): void {
+    this.earthQuality = q;
+    const earth = this.views.get(3);
+    const u = earth?.uniforms;
+    if (!u) return;
+    const loader = new THREE.TextureLoader();
+    const aniso = this.graphics.anisotropy ? this.renderer.capabilities.getMaxAnisotropy() : 1;
+    const swap = (key: string, file: string, srgb: boolean, repeat = false) => {
+      loader.load('textures/earth/' + file, (t) => {
+        if (this.earthQuality !== q) return t.dispose();
+        if (srgb) t.colorSpace = THREE.SRGBColorSpace;
+        if (repeat) t.wrapS = THREE.RepeatWrapping;
+        t.anisotropy = aniso;
+        const old = u[key].value as THREE.Texture;
+        u[key].value = t;
+        this.textures = this.textures.filter((x) => x !== old).concat(t);
+        old.dispose();
+      });
+    };
+    swap('dayMap', `day-${q}k.jpg`, true);
+    swap('nightMap', `night-${q}k.jpg`, true);
+    swap('cloudsMap', `clouds-${q}k.jpg`, false, true);
   }
 
   /** Filtro por tipo de cuerpo; el cuerpo enfocado siempre se ve. */
@@ -276,15 +401,46 @@ export class Engine {
 
   // ─────────────────────────── bucle ───────────────────────────
 
-  private frame = (): void => {
+  private frame = (now: number): void => {
     if (this.disposed) return;
+    const cap = this.graphics.fpsCap;
+    if (cap && now - this.lastFrame < 1000 / cap - 1.5) return;
+    const interval = now - this.lastFrame;
+    this.lastFrame = now;
+    const t0 = performance.now();
     this.clock.tick();
     this.update(false);
     this.controls.update();
     this.updateVisibility();
+    if (this.stars) this.stars.position.copy(this.camera.position);
+    this.renderer.info.reset();
     this.composer.render();
     this.emit(false);
+    this.measure(interval, performance.now() - t0);
   };
+
+  /** FPS, tiempo de CPU por frame y resolución dinámica. */
+  private measure(interval: number, cpuMs: number): void {
+    if (interval > 0 && interval < 10_000) this.frameTimes.push(interval);
+    this.stats.frameMs = this.stats.frameMs * 0.9 + cpuMs * 0.1;
+    if (performance.now() - this.statsTimer < 1000) return;
+    this.statsTimer = performance.now();
+    const avg = this.frameTimes.reduce((a, b) => a + b, 0) / Math.max(this.frameTimes.length, 1);
+    this.frameTimes = [];
+    this.stats.fps = avg > 0 ? Math.round((1000 / avg) * 10) / 10 : 0;
+    this.stats.threads = this.pool?.threads ?? 1;
+    this.stats.width = this.renderer.domElement.width;
+    this.stats.height = this.renderer.domElement.height;
+    this.stats.drawCalls = this.renderer.info.render.calls;
+    this.stats.triangles = this.renderer.info.render.triangles;
+    if (this.graphics.dynamicResolution) {
+      const goal = (this.graphics.fpsCap || 60) * 0.92;
+      const before = this.dynScale;
+      if (this.stats.fps < goal) this.dynScale = Math.max(0.7, this.dynScale * 0.9);
+      else if (this.stats.fps > goal * 1.05 && this.dynScale < 1) this.dynScale = Math.min(1, this.dynScale * 1.1);
+      if (before !== this.dynScale) this.applyResolution();
+    }
+  }
 
   private p(i: number): V3 {
     return [this.pos[i * 3], this.pos[i * 3 + 1], this.pos[i * 3 + 2]];
@@ -357,12 +513,27 @@ export class Engine {
     }
     mp.needsUpdate = true;
 
-    if (this.layers.small.some(Boolean)) {
-      this.solar.update_small(fw[0], fw[1], fw[2]);
-      const view = new Float32Array(this.world.memory.buffer, this.solar.small_ptr(), this.solar.small_count() * 3);
+    if (this.layers.small.some(Boolean) && this.smallActive > 0) {
       const sp = this.smallPoints.geometry.getAttribute('position') as THREE.BufferAttribute;
-      (sp.array as Float32Array).set(view);
-      sp.needsUpdate = true;
+      if (this.pool) {
+        // Varios núcleos: el resultado llega relativo a su ancla y se recoloca con una resta en f64
+        this.pool.request(jd, [...fw] as V3);
+        if (this.pool.fresh) {
+          this.pool.fresh = false;
+          sp.needsUpdate = true;
+          this.stats.smallMs = this.pool.lastMs;
+        }
+        const a = this.pool.anchor;
+        this.smallPoints.position.set(a[0] - fw[0], a[1] - fw[1], a[2] - fw[2]);
+      } else {
+        const t0 = performance.now();
+        this.solar.update_small(fw[0], fw[1], fw[2]);
+        const view = new Float32Array(this.world.memory.buffer, this.solar.small_ptr(), this.smallActive * 3);
+        (sp.array as Float32Array).set(view);
+        sp.needsUpdate = true;
+        this.smallPoints.position.set(0, 0, 0);
+        this.stats.smallMs = performance.now() - t0;
+      }
     }
   }
 
@@ -496,8 +667,6 @@ export class Engine {
   private onResize = () => {
     this.camera.aspect = innerWidth / innerHeight;
     this.camera.updateProjectionMatrix();
-    this.renderer.setSize(innerWidth, innerHeight);
-    this.composer.setSize(innerWidth, innerHeight);
-    this.bloom.resolution.set(innerWidth, innerHeight);
+    this.applyResolution();
   };
 }

@@ -45,6 +45,8 @@ pub struct Solar {
     dwarfs: Vec<Orbit>,
     small: Vec<f32>,
     small_out: Vec<f32>,
+    /// Cuántos cuerpos pequeños se propagan (los primeros del buffer).
+    small_limit: usize,
     /// Posiciones heliocéntricas en eclíptica (km), antes de pasar a escena.
     ecl: Vec<[f64; 3]>,
     positions: Vec<f64>,
@@ -100,6 +102,7 @@ impl Solar {
             earth_moon,
             dwarfs,
             small_out: vec![0.0; small.len() / STRIDE * 3],
+            small_limit: small.len() / STRIDE,
             small,
             ecl: vec![[0.0; 3]; n],
             positions: vec![0.0; n * 3],
@@ -119,6 +122,17 @@ impl Solar {
 
     pub fn small_count(&self) -> usize {
         self.small.len() / STRIDE
+    }
+
+    /// Limita la propagación a los primeros `n` cuerpos pequeños (densidad gráfica).
+    pub fn set_small_limit(&mut self, n: usize) {
+        self.small_limit = n.min(self.small_count());
+    }
+
+    /// Fija el instante sin recalcular los cuerpos principales (lo usan los workers que solo
+    /// propagan cuerpos pequeños).
+    pub fn set_time(&mut self, jd_utc: f64) {
+        self.jd_tdb = tdb_from_utc(jd_utc);
     }
 
     /// Calcula posiciones y orientaciones de todos los cuerpos principales y lunas.
@@ -190,7 +204,7 @@ impl Solar {
     /// así que no hay temblor aunque la cámara esté a 50 au del Sol.
     pub fn update_small(&mut self, cam_x: f64, cam_y: f64, cam_z: f64) {
         let jd = self.jd_tdb;
-        for (k, rec) in self.small.chunks_exact(STRIDE).enumerate() {
+        for (k, rec) in self.small.chunks_exact(STRIDE).take(self.small_limit).enumerate() {
             let p = to_scene(Orbit::from_record(rec).position(jd));
             let o = &mut self.small_out[k * 3..k * 3 + 3];
             o[0] = (p[0] - cam_x) as f32;

@@ -39,6 +39,8 @@ export interface World {
   memory: WebAssembly.Memory;
   bodies: Body[];
   smallClass: Uint8Array;
+  /** Registros de `smallbodies.bin` barajados: cualquier prefijo es una muestra representativa. */
+  smallRecords: Float32Array;
   smallMeta: SmallBodiesMeta;
 }
 
@@ -74,12 +76,12 @@ export async function loadWorld(onProgress: (msg: string) => void): Promise<Worl
     moonParent[k] = PARENT_INDEX[m.parent];
   });
   const dwarfFlat = new Float64Array(dwarfsJson.bodies.flatMap((d) => [d.epoch, d.a, d.e, d.i, d.om, d.w, d.ma]));
-  const small = new Float32Array(smallBuf);
+  const small = shuffleRecords(new Float32Array(smallBuf), smallMeta.stride);
   const smallClass = new Uint8Array(smallMeta.count);
   for (let k = 0; k < smallMeta.count; k++) smallClass[k] = small[k * smallMeta.stride + 8];
 
   onProgress('Calculando efemérides');
-  const solar = new Solar(moonFlat, moonParent, dwarfFlat, small);
+  const solar = new Solar(moonFlat, moonParent, dwarfFlat, small.slice());
 
   const bodies: Body[] = [];
   SUN_AND_PLANETS.forEach((info, k) =>
@@ -105,5 +107,20 @@ export async function loadWorld(onProgress: (msg: string) => void): Promise<Worl
       },
     });
   });
-  return { solar, memory: wasm.memory, bodies, smallClass, smallMeta };
+  return { solar, memory: wasm.memory, bodies, smallClass, smallRecords: small, smallMeta };
+}
+
+/** Fisher-Yates con semilla fija: el mismo orden en cada carga. */
+function shuffleRecords(data: Float32Array, stride: number): Float32Array {
+  const n = data.length / stride;
+  const out = new Float32Array(data.length);
+  const idx = Array.from({ length: n }, (_, i) => i);
+  let seed = 0x9e3779b9;
+  const rand = () => ((seed = (Math.imul(seed ^ (seed >>> 15), 0x2c1b3c6d) + 0x6d2b79f5) >>> 0) / 4294967296);
+  for (let i = n - 1; i > 0; i--) {
+    const j = Math.floor(rand() * (i + 1));
+    [idx[i], idx[j]] = [idx[j], idx[i]];
+  }
+  idx.forEach((src, dst) => out.set(data.subarray(src * stride, (src + 1) * stride), dst * stride));
+  return out;
 }

@@ -56,7 +56,7 @@ function orientSlot(b: Body): number {
   return -1;
 }
 
-export function createBodyView(b: Body, tex: Tex): BodyView {
+export function createBodyView(b: Body, tex: Tex, earthQuality = 4): BodyView {
   const root = new THREE.Group();
   const spin = new THREE.Group();
   root.add(spin);
@@ -75,12 +75,13 @@ export function createBodyView(b: Body, tex: Tex): BodyView {
     glow.scale.setScalar(info.radius * 9);
     root.add(glow);
   } else if (info.name === 'Tierra') {
-    const clouds = tex('clouds-4k.png', false);
+    const q = earthQuality;
+    const clouds = tex(`earth/clouds-${q}k.jpg`, false);
     clouds.wrapS = THREE.RepeatWrapping;
     uniforms = {
-      dayMap: { value: tex('earth-day-4k.jpg') },
-      nightMap: { value: tex('earth-night.png') },
-      waterMap: { value: tex('earth-water.png', false) },
+      dayMap: { value: tex(`earth/day-${q}k.jpg`) },
+      nightMap: { value: tex(`earth/night-${q}k.jpg`) },
+      waterMap: { value: tex('earth/water-4k.png', false) },
       cloudsMap: { value: clouds },
       sunPos: { value: new THREE.Vector3() },
       cloudShift: { value: 0 },

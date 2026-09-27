@@ -6,5 +6,6 @@ export default defineConfig({
   root: 'web',
   base: './',
   plugins: [react(), tailwindcss()],
+  worker: { format: 'es' },
   build: { outDir: '../dist', emptyOutDir: true, target: 'es2022', chunkSizeWarningLimit: 1200 },
 });

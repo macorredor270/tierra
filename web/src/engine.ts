@@ -13,6 +13,7 @@ import { SMALL_CLASS_COLORS } from './catalog';
 import { detectHardware, initialGraphics, saveGraphics, type Graphics, type HardwareInfo } from './graphics';
 import { SmallPool } from './smallPool';
 import { createStars } from './stars';
+import { createSmallGpu, type SmallGpu } from './smallGpu';
 import { MAX_OCCLUDERS, shadowUniforms } from './shadows';
 import { pickLevel, texturePath } from './textures';
 
@@ -100,6 +101,7 @@ export class Engine {
   private disposed = false;
   private target: THREE.WebGLRenderTarget;
   private pool: SmallPool | null = null;
+  private gpuSmall!: SmallGpu;
   private smallActive = 0;
   private stars: THREE.Points | null = null;
   private sky: THREE.Texture;
@@ -162,6 +164,8 @@ export class Engine {
     this.buildOrbits();
     this.buildMarkers();
     this.buildSmallBodies();
+    this.gpuSmall = createSmallGpu(world.smallRecords, world.smallMeta.stride);
+    this.scene.add(this.gpuSmall.points, this.gpuSmall.tails);
     this.buildLabels();
 
     // Sin un render target multisample el postprocesado pierde el antialiasing del canvas
@@ -261,13 +265,15 @@ export class Engine {
     this.upgradeTextures(g.textures);
     this.applyStars();
     const active = Math.round(this.solar.small_count() * g.smallDensity);
-    if (active !== this.smallActive || g.workers !== prev.workers || (g.workers && !this.pool)) {
+    this.gpuSmall.setCount(active);
+    const cpuMode = !g.smallGpu;
+    if (active !== this.smallActive || g.workers !== prev.workers || g.smallGpu !== prev.smallGpu || (cpuMode && g.workers && !this.pool)) {
       this.smallActive = active;
-      this.solar.set_small_limit(active);
+      this.solar.set_small_limit(cpuMode ? active : 0);
       this.smallPoints.geometry.setDrawRange(0, active);
       this.pool?.dispose();
       this.pool = null;
-      if (g.workers && this.hw.cores > 1) {
+      if (cpuMode && g.workers && this.hw.cores > 1) {
         const threads = Math.max(1, Math.min(this.hw.cores - 1, 8));
         const attr = this.smallPoints.geometry.getAttribute('position') as THREE.BufferAttribute;
         const stride = this.world.smallMeta.stride;
@@ -465,7 +471,7 @@ export class Engine {
     const avg = this.frameTimes.reduce((a, b) => a + b, 0) / Math.max(this.frameTimes.length, 1);
     this.frameTimes = [];
     this.stats.fps = avg > 0 ? Math.round((1000 / avg) * 10) / 10 : 0;
-    this.stats.threads = this.pool?.threads ?? 1;
+    this.stats.threads = this.graphics.smallGpu ? 0 : this.pool?.threads ?? 1;
     this.stats.width = this.renderer.domElement.width;
     this.stats.height = this.renderer.domElement.height;
     this.stats.drawCalls = this.renderer.info.render.calls;
@@ -526,6 +532,14 @@ export class Engine {
         v.spin.matrix.makeBasis(x, y, z.negate());
       }
       if (v.uniforms?.sunPos) (v.uniforms.sunPos.value as THREE.Vector3).set(...sun);
+      if (v.atmo) {
+        const u = v.atmo.uniforms;
+        (u.center.value as THREE.Vector3).copy(v.root.position);
+        (u.sunPos.value as THREE.Vector3).set(...sun);
+        // Desde dentro de la atmósfera se ven las caras interiores de la esfera
+        const inside = this.camera.position.distanceTo(v.root.position) < u.atmoR.value;
+        (v.atmo.mesh.material as THREE.Material).side = inside ? THREE.BackSide : THREE.FrontSide;
+      }
       if (v.uniforms?.planetPos) (v.uniforms.planetPos.value as THREE.Vector3).copy(v.root.position);
       if (v.uniforms?.cloudShift) v.uniforms.cloudShift.value = ((ms / 86_400_000) * 0.02) % 1;
       if (v.uniforms?.time) v.uniforms.time.value = performance.now() / 1000;
@@ -552,7 +566,11 @@ export class Engine {
     }
     mp.needsUpdate = true;
 
-    if (this.layers.small.some(Boolean) && this.smallActive > 0) {
+    const tDays = jd + 69.184 / 86400 - 2451545;
+    this.gpuSmall.update(tDays, fw, this.renderer.getPixelRatio(), this.layers.small, this.graphics.cometTails);
+    if (this.graphics.smallGpu) {
+      this.stats.smallMs = 0;
+    } else if (this.layers.small.some(Boolean) && this.smallActive > 0) {
       const sp = this.smallPoints.geometry.getAttribute('position') as THREE.BufferAttribute;
       if (this.pool) {
         // Varios núcleos: el resultado llega relativo a su ancla y se recoloca con una resta en f64
@@ -676,7 +694,9 @@ export class Engine {
     }
 
     (this.smallPoints.material as THREE.ShaderMaterial).uniforms.visible.value = this.layers.small.map(Number);
-    this.smallPoints.visible = this.layers.small.some(Boolean);
+    const anySmall = this.layers.small.some(Boolean);
+    this.smallPoints.visible = anySmall && !this.graphics.smallGpu;
+    this.gpuSmall.points.visible = anySmall && this.graphics.smallGpu;
   }
 
   // ─────────────────────────── estado para la UI ───────────────────────────

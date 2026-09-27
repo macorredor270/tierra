@@ -82,14 +82,17 @@ else
     info "Instalando wasm-pack…"
     curl -sSfL https://rustwasm.github.io/wasm-pack/installer/init.sh | sh || cargo install wasm-pack --locked
   fi
-  info "Compilando el motor Rust → WebAssembly…"
-  npm run --silent wasm
+  NEED_WASM=1
 fi
 
-# ─── Dependencias JS y arranque ───
+# ─── Dependencias JS (antes del WASM: wasm-opt viene del paquete npm binaryen) ───
 if [ ! -d node_modules ] || [ package-lock.json -nt node_modules ]; then
   info "Instalando dependencias (npm ci)…"
   npm ci --no-audit --no-fund
+fi
+if [ "${NEED_WASM:-0}" = 1 ]; then
+  info "Compilando el motor Rust → WebAssembly (SIMD + wasm-opt)…"
+  npm run --silent wasm
 fi
 
 PORT="${PORT:-5173}"

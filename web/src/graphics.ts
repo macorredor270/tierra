@@ -21,14 +21,18 @@ export interface Graphics {
   starLimit: number;
   /** Fracción de cuerpos pequeños dibujados. */
   smallDensity: number;
-  /** Propaga los cuerpos pequeños en varios hilos (Web Workers). */
+  /** Resuelve Kepler de los cuerpos pequeños en la GPU (vertex shader). */
+  smallGpu: boolean;
+  /** Si no se usa la GPU: propaga los cuerpos pequeños en varios hilos (Web Workers + WASM). */
   workers: boolean;
+  /** Colas de los cometas (iones y polvo). */
+  cometTails: boolean;
   /** 0 = sin límite (sincronizado con la pantalla). */
   fpsCap: 0 | 30 | 60 | 120;
   showStats: boolean;
 }
 
-export const PRESETS: Record<Exclude<Preset, 'custom'>, Omit<Graphics, 'preset' | 'showStats' | 'workers'>> = {
+export const PRESETS: Record<Exclude<Preset, 'custom'>, Omit<Graphics, 'preset' | 'showStats' | 'workers' | 'smallGpu' | 'cometTails'>> = {
   low: {
     renderScale: 0.85, dynamicResolution: true, msaa: 2, bloom: false, bloomStrength: 0.5, textures: 2,
     anisotropy: false, shadows: true, stars: true, starLimit: 5.5, smallDensity: 0.25, fpsCap: 30,
@@ -108,6 +112,8 @@ export function fromPreset(p: Exclude<Preset, 'custom'>, hw: HardwareInfo): Grap
     textures: base.textures === 8 && hw.maxTexture < 8192 ? 4 : base.textures,
     msaa: Math.min(base.msaa, hw.maxSamples) as Graphics['msaa'],
     workers: hw.cores > 2,
+    smallGpu: !hw.software,
+    cometTails: true,
     showStats: false,
   };
 }

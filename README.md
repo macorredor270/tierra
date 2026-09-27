@@ -46,6 +46,15 @@ El botón ⚙ (o la tecla **G**) abre el panel de ajustes gráficos:
 
 Los ajustes se guardan en el navegador.
 
+### Realismo y rendimiento
+
+- **Asteroides en la GPU**: la ecuación de Kepler de los 84.000 cuerpos pequeños se resuelve en el vertex shader. Los elementos orbitales se suben una sola vez y por frame solo cambian dos números (tiempo y foco), así que la CPU queda libre. El motor Rust multinúcleo queda como alternativa, y un test visual comprueba que los dos dan la misma distribución.
+- **Colas de cometas**: cola de iones y de polvo orientadas en sentido contrario al Sol, cuya longitud crece al acercarse al perihelio.
+- **Atmósferas con dispersión física** (Rayleigh + Mie de un rebote, modelo de Nishita) para la Tierra, Venus, Marte y Titán: el limbo azul, la neblina naranja de Titán y la luz rojiza del terminador salen de la física, no de un color pintado.
+- **Anillos**: los de Saturno proyectan sombra sobre el planeta y el planeta sobre ellos; Urano y Neptuno tienen sus anillos reales, estrechos y oscuros, con los radios de JPL.
+- **Sol** con granulación animada, oscurecimiento del limbo y corona con serpentinas.
+- **WebAssembly con SIMD de 128 bits** y optimizado con `wasm-opt -O3` (46 KB).
+
 ## Sombras y eclipses
 
 Las sombras se calculan en los shaders de forma analítica: el Sol es un disco de 695.700 km, y para cada píxel se mide qué fracción de ese disco tapan los cuerpos cercanos (área exacta de solape de dos círculos). Así salen la **umbra y la penumbra con su tamaño real**, sin mapas de sombras que se pixelen:

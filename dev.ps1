@@ -3,6 +3,7 @@
 # y arranca el servidor de desarrollo.
 #   powershell -ExecutionPolicy Bypass -File .\dev.ps1
 $ErrorActionPreference = 'Stop'
+$needWasm = $false
 Set-Location -Path $PSScriptRoot
 
 function Info($m) { Write-Host "› $m" -ForegroundColor Cyan }
@@ -72,16 +73,19 @@ if ((Test-Path 'web/src/wasm/astro_wasm_bg.wasm') -and -not (Test-Path 'crates')
     Info 'Instalando wasm-pack…'
     cargo install wasm-pack --locked
   }
-  Info 'Compilando el motor Rust → WebAssembly…'
-  npm run --silent wasm
-  if ($LASTEXITCODE -ne 0) { Fail 'Falló la compilación del WASM.' }
+  $needWasm = $true
 }
 
-# ─── Dependencias JS y arranque ───
+# ─── Dependencias JS (antes del WASM: wasm-opt viene del paquete npm binaryen) ───
 if (-not (Test-Path 'node_modules') -or ((Get-Item 'package-lock.json').LastWriteTime -gt (Get-Item 'node_modules').LastWriteTime)) {
   Info 'Instalando dependencias (npm ci)…'
   npm ci --no-audit --no-fund
   if ($LASTEXITCODE -ne 0) { Fail 'npm ci falló.' }
+}
+if ($needWasm) {
+  Info 'Compilando el motor Rust → WebAssembly (SIMD + wasm-opt)…'
+  npm run --silent wasm
+  if ($LASTEXITCODE -ne 0) { Fail 'Falló la compilación del WASM.' }
 }
 
 $port = if ($env:PORT) { $env:PORT } else { 5173 }

@@ -144,11 +144,18 @@ export function GraphicsPanel({ engine, graphics, onChange, onClose }: { engine:
           <Seg value={graphics.smallDensity} options={[[0.25, '25 %'], [0.5, '50 %'], [1, '100 %']]} onChange={(v) => set({ smallDensity: v })} />
         </Row>
         <Toggle
+          label="Asteroides en la GPU"
+          hint="La tarjeta gráfica resuelve la ecuación de Kepler de los 84k cuerpos en cada frame"
+          checked={graphics.smallGpu}
+          onChange={(v) => set({ smallGpu: v })}
+        />
+        <Toggle label="Colas de los cometas" checked={graphics.cometTails} onChange={(v) => set({ cometTails: v })} />
+        {!graphics.smallGpu && <Toggle
           label="Cálculo multinúcleo"
           hint={`Reparte los asteroides entre ${Math.max(1, Math.min(hw.cores - 1, 8))} hilos de la CPU (Web Workers + WASM)`}
           checked={graphics.workers}
           onChange={(v) => set({ workers: v })}
-        />
+        />}
 
         <Row label="Límite de FPS">
           <Seg value={graphics.fpsCap} options={[[30, '30'], [60, '60'], [120, '120'], [0, 'Pantalla']]} onChange={(v) => set({ fpsCap: v })} />

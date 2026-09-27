@@ -1,0 +1,4 @@
+# SIMD de 128 bits en WebAssembly: lo soportan todos los navegadores actuales (Chrome 91+,
+# Firefox 89+, Safari 16.4+) y permite a Rust vectorizar los bucles de propagación.
+[target.wasm32-unknown-unknown]
+rustflags = ["-C", "target-feature=+simd128"]

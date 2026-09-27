@@ -68,3 +68,7 @@ npm run data       # vuelve a descargar los datos de JPL (opcional)
 ```
 
 Texturas planetarias: Solar System Scope (CC BY 4.0) y NASA Visible Earth. Este proyecto no está afiliado a NASA ni a JPL.
+
+## Licencia
+
+El código se publica bajo licencia [MIT](LICENSE). Las texturas planetarias no son parte del código: tienen su propia licencia (Solar System Scope, CC BY 4.0) y la de NASA Visible Earth. Los datos orbitales proceden de NASA/JPL.

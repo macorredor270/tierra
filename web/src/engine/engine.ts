@@ -4,19 +4,19 @@ import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
 import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
 import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
 import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
-import { Solar } from './wasm/astro_wasm.js';
-import type { Body, World } from './data';
+import { Solar } from '../wasm/astro_wasm.js';
+import type { Body, World } from '../data/world';
 import { createBodyView, createTextureLoader, type BodyView } from './bodies';
 import { Clock } from './clock';
 import { pointsShader, smallShader } from './shaders';
-import { SMALL_CLASS_COLORS } from './catalog';
+import { SMALL_CLASS_COLORS } from '../data/catalog';
 import { detectHardware, initialGraphics, saveGraphics, type Graphics, type HardwareInfo } from './graphics';
 import { SmallPool } from './smallPool';
 import { createStars } from './stars';
 import { createSmallGpu, type SmallGpu } from './smallGpu';
 import { MAX_OCCLUDERS, shadowUniforms } from './shadows';
-import { pickLevel, texturePath } from './textures';
-import { clampToMission, missionPath, missionState } from './spacecraft';
+import { pickLevel, texturePath } from '../data/textures';
+import { clampToMission, missionPath, missionState } from '../data/spacecraft';
 
 export const AU = 149_597_870.7;
 const GM_SUN = 1.32712440018e11; // km³/s²
@@ -72,7 +72,16 @@ interface Flight {
 export class Engine {
   readonly clock = new Clock();
   readonly bodies: Body[];
-  layers: Layers = { planets: true, crafts: true, dwarfs: true, moons: true, orbits: true, labels: true, minorMoons: true, small: [true, true, true, true, true, true] };
+  layers: Layers = {
+    planets: true,
+    crafts: true,
+    dwarfs: true,
+    moons: true,
+    orbits: true,
+    labels: true,
+    minorMoons: true,
+    small: [true, true, true, true, true, true],
+  };
   focus = 0;
   readonly hw: HardwareInfo;
   graphics: Graphics;
@@ -119,7 +128,12 @@ export class Engine {
   private frameTimes: number[] = [];
   private statsTimer = 0;
 
-  constructor(canvas: HTMLCanvasElement, private labelsEl: HTMLElement, world: World, manager: THREE.LoadingManager) {
+  constructor(
+    canvas: HTMLCanvasElement,
+    private labelsEl: HTMLElement,
+    world: World,
+    manager: THREE.LoadingManager,
+  ) {
     this.world = world;
     this.solar = world.solar;
     this.bodies = world.bodies;
@@ -127,7 +141,11 @@ export class Engine {
     // "high-performance" pide al navegador la GPU dedicada en equipos con dos gráficas.
     // El antialiasing lo hace el render target multisample del postprocesado.
     this.renderer = new THREE.WebGLRenderer({
-      canvas, antialias: false, stencil: false, logarithmicDepthBuffer: true, powerPreference: 'high-performance',
+      canvas,
+      antialias: false,
+      stencil: false,
+      logarithmicDepthBuffer: true,
+      powerPreference: 'high-performance',
     });
     this.hw = detectHardware(this.renderer.getContext() as WebGL2RenderingContext);
     this.graphics = initialGraphics(this.hw);
@@ -264,7 +282,7 @@ export class Engine {
     if (o.ms != null) {
       this.clock.jumpTo(o.ms);
       if (o.speed && o.speed > 0) this.clock.setSpeed(o.speed);
-      else this.clock.paused = true;
+      else this.clock.pause();
     }
     this.update(true);
     this.focusOn(o.focus, o.dist, o.animate ?? true);
@@ -273,6 +291,10 @@ export class Engine {
 
   overview(): void {
     this.focusOn(0, 4 * AU);
+  }
+
+  setLayers(l: Layers): void {
+    this.layers = l;
   }
 
   /** Aplica los ajustes gráficos en caliente y los guarda. */
@@ -287,14 +309,22 @@ export class Engine {
     this.bloom.strength = g.bloomStrength;
     const aniso = g.anisotropy ? this.renderer.capabilities.getMaxAnisotropy() : 1;
     for (const t of this.textures) {
-      if (t.anisotropy !== aniso) { t.anisotropy = aniso; if (t.image) t.needsUpdate = true; }
+      if (t.anisotropy !== aniso) {
+        t.anisotropy = aniso;
+        if (t.image) t.needsUpdate = true;
+      }
     }
     this.upgradeTextures(g.textures);
     this.applyStars();
     const active = Math.round(this.solar.small_count() * g.smallDensity);
     this.gpuSmall.setCount(active);
     const cpuMode = !g.smallGpu;
-    if (active !== this.smallActive || g.workers !== prev.workers || g.smallGpu !== prev.smallGpu || (cpuMode && g.workers && !this.pool)) {
+    if (
+      active !== this.smallActive ||
+      g.workers !== prev.workers ||
+      g.smallGpu !== prev.smallGpu ||
+      (cpuMode && g.workers && !this.pool)
+    ) {
       this.smallActive = active;
       this.solar.set_small_limit(cpuMode ? active : 0);
       this.smallPoints.geometry.setDrawRange(0, active);
@@ -304,7 +334,12 @@ export class Engine {
         const threads = Math.max(1, Math.min(this.hw.cores - 1, 8));
         const attr = this.smallPoints.geometry.getAttribute('position') as THREE.BufferAttribute;
         const stride = this.world.smallMeta.stride;
-        this.pool = new SmallPool(this.world.smallRecords.subarray(0, active * stride), stride, threads, attr.array as Float32Array);
+        this.pool = new SmallPool(
+          this.world.smallRecords.subarray(0, active * stride),
+          stride,
+          threads,
+          attr.array as Float32Array,
+        );
       }
     }
   }
@@ -361,15 +396,29 @@ export class Engine {
       };
       if (v.texKey === 'earth' && v.uniforms) {
         const u = v.uniforms;
-        for (const [uniform, layer, srgb] of [['dayMap', 'day', true], ['nightMap', 'night', true], ['cloudsMap', 'clouds', false]] as const) {
-          load(texturePath('earth', target, layer), srgb, (t) => swap(u[uniform].value, t, (x) => (u[uniform].value = x)), layer === 'clouds');
+        for (const [uniform, layer, srgb] of [
+          ['dayMap', 'day', true],
+          ['nightMap', 'night', true],
+          ['cloudsMap', 'clouds', false],
+        ] as const) {
+          load(
+            texturePath('earth', target, layer),
+            srgb,
+            (t) => swap(u[uniform].value, t, (x) => (u[uniform].value = x)),
+            layer === 'clouds',
+          );
         }
       } else if (v.body.info.kind === 'star' && v.uniforms) {
         const u = v.uniforms;
         load(texturePath(v.texKey, target), true, (t) => swap(u.map.value, t, (x) => (u.map.value = x)));
       } else {
         const mat = v.mesh.material as THREE.MeshStandardMaterial;
-        load(texturePath(v.texKey, target), true, (t) => swap(mat.map, t, (x) => { mat.map = x; mat.needsUpdate = true; }));
+        load(texturePath(v.texKey, target), true, (t) =>
+          swap(mat.map, t, (x) => {
+            mat.map = x;
+            mat.needsUpdate = true;
+          }),
+        );
       }
     }
   }
@@ -403,7 +452,10 @@ export class Engine {
       if (b.mission) {
         const geo = new THREE.BufferGeometry();
         geo.setAttribute('position', new THREE.BufferAttribute(missionPath(this.world.fleet, b.mission), 3));
-        const line = new THREE.Line(geo, new THREE.LineBasicMaterial({ color: b.info.color, transparent: true, opacity: 0.35, depthWrite: false }));
+        const line = new THREE.Line(
+          geo,
+          new THREE.LineBasicMaterial({ color: b.info.color, transparent: true, opacity: 0.35, depthWrite: false }),
+        );
         line.frustumCulled = false;
         this.scene.add(line);
         this.craftPaths.push({ body: b, line });
@@ -413,7 +465,10 @@ export class Engine {
       const geo = new THREE.BufferGeometry();
       geo.setAttribute('position', new THREE.BufferAttribute(new Float32Array(n * 3), 3));
       const color = new THREE.Color(b.info.kind === 'moon' ? 0x8fa3c8 : b.info.color).lerp(new THREE.Color(0x9fb4e6), 0.35);
-      const line = new THREE.LineLoop(geo, new THREE.LineBasicMaterial({ color, transparent: true, opacity: 0.5, depthWrite: false }));
+      const line = new THREE.LineLoop(
+        geo,
+        new THREE.LineBasicMaterial({ color, transparent: true, opacity: 0.5, depthWrite: false }),
+      );
       line.frustumCulled = false;
       this.scene.add(line);
       this.orbitLines.push({ body: b, line });
@@ -440,13 +495,16 @@ export class Engine {
     const colors = new Float32Array(n * 3);
     this.bodies.forEach((b, i) => new THREE.Color(b.info.color).toArray(colors, i * 3));
     geo.setAttribute('color', new THREE.BufferAttribute(colors, 3));
-    this.markers = new THREE.Points(geo, new THREE.ShaderMaterial({
-      uniforms: { pixelRatio: { value: this.renderer.getPixelRatio() } },
-      vertexShader: pointsShader.vertex,
-      fragmentShader: pointsShader.fragment,
-      transparent: true,
-      depthWrite: false,
-    }));
+    this.markers = new THREE.Points(
+      geo,
+      new THREE.ShaderMaterial({
+        uniforms: { pixelRatio: { value: this.renderer.getPixelRatio() } },
+        vertexShader: pointsShader.vertex,
+        fragmentShader: pointsShader.fragment,
+        transparent: true,
+        depthWrite: false,
+      }),
+    );
     this.markers.frustumCulled = false;
     this.scene.add(this.markers);
   }
@@ -456,17 +514,20 @@ export class Engine {
     const geo = new THREE.BufferGeometry();
     geo.setAttribute('position', new THREE.BufferAttribute(new Float32Array(count * 3), 3));
     geo.setAttribute('cls', new THREE.BufferAttribute(Float32Array.from(this.world.smallClass), 1));
-    this.smallPoints = new THREE.Points(geo, new THREE.ShaderMaterial({
-      uniforms: {
-        pixelRatio: { value: this.renderer.getPixelRatio() },
-        visible: { value: this.layers.small.map(Number) },
-        colors: { value: SMALL_CLASS_COLORS.map((c) => new THREE.Color(c)) },
-      },
-      vertexShader: smallShader.vertex,
-      fragmentShader: smallShader.fragment,
-      transparent: true,
-      depthWrite: false,
-    }));
+    this.smallPoints = new THREE.Points(
+      geo,
+      new THREE.ShaderMaterial({
+        uniforms: {
+          pixelRatio: { value: this.renderer.getPixelRatio() },
+          visible: { value: this.layers.small.map(Number) },
+          colors: { value: SMALL_CLASS_COLORS.map((c) => new THREE.Color(c)) },
+        },
+        vertexShader: smallShader.vertex,
+        fragmentShader: smallShader.fragment,
+        transparent: true,
+        depthWrite: false,
+      }),
+    );
     this.smallPoints.frustumCulled = false;
     this.scene.add(this.smallPoints);
   }
@@ -513,7 +574,7 @@ export class Engine {
     const avg = this.frameTimes.reduce((a, b) => a + b, 0) / Math.max(this.frameTimes.length, 1);
     this.frameTimes = [];
     this.stats.fps = avg > 0 ? Math.round((1000 / avg) * 10) / 10 : 0;
-    this.stats.threads = this.graphics.smallGpu ? 0 : this.pool?.threads ?? 1;
+    this.stats.threads = this.graphics.smallGpu ? 0 : (this.pool?.threads ?? 1);
     this.stats.width = this.renderer.domElement.width;
     this.stats.height = this.renderer.domElement.height;
     this.stats.drawCalls = this.renderer.info.render.calls;
@@ -543,7 +604,9 @@ export class Engine {
     for (const tr of this.world.fleet.tracks) {
       if (!missionState(this.world.fleet, tr, jdTdb, this.tmpP, this.tmpV)) continue;
       const k = tr.body * 3;
-      const dx = this.tmpP[0] - this.pos[k], dy = this.tmpP[1] - this.pos[k + 1], dz = this.tmpP[2] - this.pos[k + 2];
+      const dx = this.tmpP[0] - this.pos[k],
+        dy = this.tmpP[1] - this.pos[k + 1],
+        dz = this.tmpP[2] - this.pos[k + 2];
       for (const b of this.bodies) {
         if (b.index !== tr.body && b.parent !== tr.body) continue;
         this.pos[b.index * 3] += dx;
@@ -587,12 +650,35 @@ export class Engine {
       v.root.position.set(this.pos[i * 3] - fw[0], this.pos[i * 3 + 1] - fw[1], this.pos[i * 3 + 2] - fw[2]);
       if (v.orientSlot >= 0) {
         const o = v.orientSlot * 9;
-        m4.set(orient[o], orient[o + 3], orient[o + 6], 0, orient[o + 1], orient[o + 4], orient[o + 7], 0, orient[o + 2], orient[o + 5], orient[o + 8], 0, 0, 0, 0, 1);
+        m4.set(
+          orient[o],
+          orient[o + 3],
+          orient[o + 6],
+          0,
+          orient[o + 1],
+          orient[o + 4],
+          orient[o + 7],
+          0,
+          orient[o + 2],
+          orient[o + 5],
+          orient[o + 8],
+          0,
+          0,
+          0,
+          0,
+          1,
+        );
         v.spin.matrix.copy(m4);
       } else if (v.body.parent) {
         // Lunas sin datos IAU: acoplamiento de marea, la misma cara mira siempre al planeta
         const par = v.body.parent;
-        this.tmp.set(this.pos[par * 3] - this.pos[i * 3], this.pos[par * 3 + 1] - this.pos[i * 3 + 1], this.pos[par * 3 + 2] - this.pos[i * 3 + 2]).normalize();
+        this.tmp
+          .set(
+            this.pos[par * 3] - this.pos[i * 3],
+            this.pos[par * 3 + 1] - this.pos[i * 3 + 1],
+            this.pos[par * 3 + 2] - this.pos[i * 3 + 2],
+          )
+          .normalize();
         const x = this.tmp.clone();
         const z = new THREE.Vector3(0, 1, 0).cross(x).normalize();
         const y = x.clone().cross(z);
@@ -710,8 +796,14 @@ export class Engine {
     const cam = this.camera.position;
     this.pxPerRad = innerHeight / 2 / Math.tan(THREE.MathUtils.degToRad(this.camera.fov / 2));
     const fw = this.focusWorld;
-    const dist = (i: number) => Math.hypot(this.pos[i * 3] - fw[0] - cam.x, this.pos[i * 3 + 1] - fw[1] - cam.y, this.pos[i * 3 + 2] - fw[2] - cam.z);
-    const sep = (i: number, j: number) => Math.hypot(this.pos[i * 3] - this.pos[j * 3], this.pos[i * 3 + 1] - this.pos[j * 3 + 1], this.pos[i * 3 + 2] - this.pos[j * 3 + 2]);
+    const dist = (i: number) =>
+      Math.hypot(this.pos[i * 3] - fw[0] - cam.x, this.pos[i * 3 + 1] - fw[1] - cam.y, this.pos[i * 3 + 2] - fw[2] - cam.z);
+    const sep = (i: number, j: number) =>
+      Math.hypot(
+        this.pos[i * 3] - this.pos[j * 3],
+        this.pos[i * 3 + 1] - this.pos[j * 3 + 1],
+        this.pos[i * 3 + 2] - this.pos[j * 3 + 2],
+      );
 
     const sizes = this.markers.geometry.getAttribute('size') as THREE.BufferAttribute;
     const show: boolean[] = [];
@@ -724,7 +816,16 @@ export class Engine {
       const minorHidden = this.hidden(b);
       const visible = !minorHidden && (parentSep > 10 || i === this.focus);
       show[i] = visible && Number.isFinite(d);
-      const base = b.info.kind === 'star' ? 9 : b.info.kind === 'planet' ? 6 : b.info.kind === 'dwarf' || b.mission ? 5 : b.resolved ? 4 : 2.5;
+      const base =
+        b.info.kind === 'star'
+          ? 9
+          : b.info.kind === 'planet'
+            ? 6
+            : b.info.kind === 'dwarf' || b.mission
+              ? 5
+              : b.resolved
+                ? 4
+                : 2.5;
       sizes.setX(i, visible && apparent < 2.5 ? base : 0);
       const v = this.views.get(i);
       if (v) v.root.visible = !minorHidden && apparent > 0.3;
@@ -745,7 +846,8 @@ export class Engine {
     }
 
     // Etiquetas: proyección a pantalla
-    const w = innerWidth, h = innerHeight;
+    const w = innerWidth,
+      h = innerHeight;
     for (const [i, el] of this.labels) {
       const b = this.bodies[i];
       let visible = this.layers.labels && show[i];
@@ -783,8 +885,10 @@ export class Engine {
     const b = this.bodies[i];
     // Velocidad heliocéntrica por la ecuación vis-viva (planetas y enanos)
     const speedKms = b.mission
-      ? this.craftSpeed.get(i) ?? NaN
-      : b.parent === 0 && b.semiMajorKm > 0 ? Math.sqrt(GM_SUN * (2 / r - 1 / b.semiMajorKm)) : NaN;
+      ? (this.craftSpeed.get(i) ?? NaN)
+      : b.parent === 0 && b.semiMajorKm > 0
+        ? Math.sqrt(GM_SUN * (2 / r - 1 / b.semiMajorKm))
+        : NaN;
     return {
       ms: this.clock.ms,
       mode: this.clock.mode,
@@ -818,7 +922,8 @@ export class Engine {
   private onPointerUp = (e: PointerEvent) => {
     if (Math.hypot(e.clientX - this.down.x, e.clientY - this.down.y) > 5) return;
     const fw = this.focusWorld;
-    let best = -1, bestD = 16;
+    let best = -1,
+      bestD = 16;
     for (const b of this.bodies) {
       const i = b.index;
       const sizes = this.markers.geometry.getAttribute('size') as THREE.BufferAttribute;
@@ -828,10 +933,14 @@ export class Engine {
       const dist = this.tmp.distanceTo(this.camera.position);
       this.tmp.project(this.camera);
       if (this.tmp.z > 1) continue;
-      const x = (this.tmp.x * 0.5 + 0.5) * innerWidth, y = (-this.tmp.y * 0.5 + 0.5) * innerHeight;
+      const x = (this.tmp.x * 0.5 + 0.5) * innerWidth,
+        y = (-this.tmp.y * 0.5 + 0.5) * innerHeight;
       const apparent = (b.info.radius / dist) * this.pxPerRad;
       const d = Math.hypot(x - e.clientX, y - e.clientY) - apparent;
-      if (d < bestD) { bestD = d; best = i; }
+      if (d < bestD) {
+        bestD = d;
+        best = i;
+      }
     }
     if (best >= 0 && best !== this.focus) this.focusOn(best);
   };

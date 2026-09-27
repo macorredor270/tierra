@@ -1,5 +1,5 @@
 // Hilo de cálculo: una instancia propia del motor WASM que propaga su porción de cuerpos pequeños.
-import init, { Solar } from './wasm/astro_wasm.js';
+import init, { Solar } from '../wasm/astro_wasm.js';
 
 let solar: Solar | null = null;
 let memory: WebAssembly.Memory;

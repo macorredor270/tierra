@@ -28,7 +28,12 @@ export class SmallPool {
   private cycleMs = 0;
   fresh = false;
 
-  constructor(records: Float32Array, stride: number, threads: number, private target: Float32Array) {
+  constructor(
+    records: Float32Array,
+    stride: number,
+    threads: number,
+    private target: Float32Array,
+  ) {
     const n = records.length / stride;
     const per = Math.ceil(n / threads);
     for (let t = 0; t < threads; t++) {

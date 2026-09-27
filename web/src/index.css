@@ -1,20 +1,35 @@
-@import "tailwindcss";
+@import 'tailwindcss';
 
 @theme {
   --color-space: #02030a;
   --color-accent: #7fc4ff;
   --color-live: #ff4d5e;
   --color-muted: #8a96b8;
-  --font-mono: ui-monospace, "SF Mono", "JetBrains Mono", Menlo, Consolas, monospace;
+  --font-mono: ui-monospace, 'SF Mono', 'JetBrains Mono', Menlo, Consolas, monospace;
   --animate-blink: blink 1.4s ease-in-out infinite;
-  @keyframes blink { 50% { opacity: 0.25; } }
+  @keyframes blink {
+    50% {
+      opacity: 0.25;
+    }
+  }
 }
 
 @layer base {
-  html, body, #root { @apply h-full overflow-hidden bg-space text-slate-100 antialiased; }
-  html { scroll-behavior: smooth; }
-  input[type="date"] { color-scheme: dark; }
-  * { scrollbar-width: thin; scrollbar-color: rgb(255 255 255 / 0.15) transparent; }
+  html,
+  body,
+  #root {
+    @apply h-full overflow-hidden bg-space text-slate-100 antialiased;
+  }
+  html {
+    scroll-behavior: smooth;
+  }
+  input[type='date'] {
+    color-scheme: dark;
+  }
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: rgb(255 255 255 / 0.15) transparent;
+  }
 }
 
 @utility glass {
@@ -26,17 +41,26 @@
   .label {
     @apply pointer-events-auto absolute top-0 left-0 cursor-pointer whitespace-nowrap pl-3 pr-1.5 text-xs text-slate-200/90 transition-colors hover:text-white;
     transform: translate(-9999px, 0);
-    text-shadow: 0 0 4px #000, 0 0 10px #000;
+    text-shadow:
+      0 0 4px #000,
+      0 0 10px #000;
     will-change: transform;
   }
   .label::before {
-    content: "";
+    content: '';
     @apply absolute top-1/2 left-0 h-px w-2;
     background: var(--c);
   }
-  .label.planet, .label.star { @apply text-[13px] font-medium tracking-wide; }
-  .label.moon { @apply text-[11px] text-slate-300/75; }
-  .label.minor { @apply text-[10px] text-slate-400/60; }
+  .label.planet,
+  .label.star {
+    @apply text-[13px] font-medium tracking-wide;
+  }
+  .label.moon {
+    @apply text-[11px] text-slate-300/75;
+  }
+  .label.minor {
+    @apply text-[10px] text-slate-400/60;
+  }
 }
 
 /* Globo de la portada: la textura se desplaza en horizontal y simula la rotación */
@@ -54,9 +78,16 @@
   filter: grayscale(1) contrast(1.1);
 }
 @keyframes globe-spin {
-  from { background-position: 0% 50%; }
-  to { background-position: -200% 50%; }
+  from {
+    background-position: 0% 50%;
+  }
+  to {
+    background-position: -200% 50%;
+  }
 }
 @media (prefers-reduced-motion: reduce) {
-  .globe, .globe-clouds { animation: none; }
+  .globe,
+  .globe-clouds {
+    animation: none;
+  }
 }

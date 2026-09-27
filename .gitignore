@@ -2,3 +2,5 @@ node_modules/
 dist/
 .texture-cache/
 __pycache__/
+test-results/
+playwright-report/

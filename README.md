@@ -120,13 +120,25 @@ En la rama `DECOMPILED`, `cargo test` compara las posiciones calculadas con los 
 ## Estructura
 
 ```
-web/src/wasm/        motor Rust ya compilado a WebAssembly (el fuente está en la rama DECOMPILED)
-scripts/fetch_data.py  descarga los datos de JPL (SSD, SBDB, Horizons)
-web/src/engine.ts    escena Three.js: origen flotante, vuelos de cámara, órbitas, marcadores
-web/src/shaders.ts   GLSL: Sol, Tierra día/noche, atmósferas, anillos con sombra
-web/src/ui/          React + Tailwind: barra de tiempo, filtros, ficha de cada cuerpo
-web/public/data/     datos de JPL ya descargados
+web/src/wasm/          motor Rust ya compilado (el fuente está en la rama DECOMPILED)
+web/src/engine/        escena Three.js: cuerpos, sombras, atmósferas, estrellas, asteroides en GPU/workers
+web/src/data/          catálogos, texturas por niveles, naves, eventos, tours, instalador offline
+web/src/ui/            React + Tailwind: portada, paneles, calendario, tours
+scripts/               descarga de datos de JPL y texturas de NASA/USGS
+tests/e2e/             Playwright
 ```
+
+La arquitectura completa, con el flujo de datos y las decisiones de diseño, está en [ARCHITECTURE.md](ARCHITECTURE.md); los cambios, en [CHANGELOG.md](CHANGELOG.md).
+
+## Desarrollo
+
+```bash
+npm run lint && npm run typecheck
+npm test                      # Vitest
+npm run build && npm run test:e2e
+```
+
+La CI ejecuta todo esto en cada push (web y E2E con Playwright), además de CodeQL y Dependabot, y publica la web en GitHub Pages desde esta rama.
 
 ## Ramas
 

@@ -5,7 +5,7 @@
 // Los cometas añaden una cola: un cuadrilátero orientado en dirección opuesta al Sol cuya
 // longitud crece al acercarse al perihelio (la sublimación empieza hacia 3–5 au).
 import * as THREE from 'three';
-import { SMALL_CLASS_COLORS } from './catalog';
+import { SMALL_CLASS_COLORS } from '../data/catalog';
 
 const KEPLER_GLSL = /* glsl */ `
   const float GAUSS_K = 0.01720209895;
@@ -156,9 +156,16 @@ export function createSmallGpu(records: Float32Array, stride: number): SmallGpu 
   geo.setAttribute('position', new THREE.BufferAttribute(new Float32Array(n * 3), 3));
   geo.setAttribute('el0', new THREE.BufferAttribute(el0, 4));
   geo.setAttribute('el1', new THREE.BufferAttribute(el1, 4));
-  const points = new THREE.Points(geo, new THREE.ShaderMaterial({
-    uniforms, vertexShader: pointsVS, fragmentShader: pointsFS, transparent: true, depthWrite: false,
-  }));
+  const points = new THREE.Points(
+    geo,
+    new THREE.ShaderMaterial({
+      uniforms,
+      vertexShader: pointsVS,
+      fragmentShader: pointsFS,
+      transparent: true,
+      depthWrite: false,
+    }),
+  );
   points.frustumCulled = false;
 
   // Colas: un cuadrilátero instanciado por cometa
@@ -166,15 +173,27 @@ export function createSmallGpu(records: Float32Array, stride: number): SmallGpu 
   tailGeo.setAttribute('position', new THREE.BufferAttribute(new Float32Array(12), 3));
   tailGeo.setAttribute('corner', new THREE.BufferAttribute(new Float32Array([0, -1, 1, -1, 1, 1, 0, 1]), 2));
   tailGeo.setIndex([0, 1, 2, 0, 2, 3]);
-  const c0 = new Float32Array(comets.length * 4), c1 = new Float32Array(comets.length * 4);
-  comets.forEach((k, j) => { c0.set(el0.subarray(k * 4, k * 4 + 4), j * 4); c1.set(el1.subarray(k * 4, k * 4 + 4), j * 4); });
+  const c0 = new Float32Array(comets.length * 4),
+    c1 = new Float32Array(comets.length * 4);
+  comets.forEach((k, j) => {
+    c0.set(el0.subarray(k * 4, k * 4 + 4), j * 4);
+    c1.set(el1.subarray(k * 4, k * 4 + 4), j * 4);
+  });
   tailGeo.setAttribute('el0', new THREE.InstancedBufferAttribute(c0, 4));
   tailGeo.setAttribute('el1', new THREE.InstancedBufferAttribute(c1, 4));
   tailGeo.instanceCount = comets.length;
-  const tails = new THREE.Mesh(tailGeo, new THREE.ShaderMaterial({
-    uniforms, vertexShader: tailVS, fragmentShader: tailFS,
-    transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, side: THREE.DoubleSide,
-  }));
+  const tails = new THREE.Mesh(
+    tailGeo,
+    new THREE.ShaderMaterial({
+      uniforms,
+      vertexShader: tailVS,
+      fragmentShader: tailFS,
+      transparent: true,
+      depthWrite: false,
+      blending: THREE.AdditiveBlending,
+      side: THREE.DoubleSide,
+    }),
+  );
   tails.frustumCulled = false;
 
   return {

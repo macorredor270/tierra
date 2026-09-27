@@ -1,4 +1,4 @@
-import init, { Solar } from './wasm/astro_wasm.js';
+import init, { Solar } from '../wasm/astro_wasm.js';
 import { DWARFS, MOON_NAMES_ES, PARENT_INDEX, SUN_AND_PLANETS, type BodyInfo } from './catalog';
 import { loadManifest } from './textures';
 import { loadFleet, type Fleet, type Mission } from './spacecraft';
@@ -10,10 +10,19 @@ export interface MoonRecord {
   ephemeris: string;
   frame: 'ecliptic' | 'laplace' | 'equatorial';
   epoch: number;
-  a: number; e: number; w: number; M: number; i: number; node: number;
-  P: number; Papsis: number; Pnode: number;
-  poleRa: number | null; poleDec: number | null;
-  radius: number | null; gm: number | null;
+  a: number;
+  e: number;
+  w: number;
+  M: number;
+  i: number;
+  node: number;
+  P: number;
+  Papsis: number;
+  Pnode: number;
+  poleRa: number | null;
+  poleDec: number | null;
+  radius: number | null;
+  gm: number | null;
 }
 
 export interface Body {
@@ -66,7 +75,9 @@ export async function loadWorld(onProgress: (msg: string) => void): Promise<Worl
   onProgress('Descargando elementos orbitales de JPL');
   const [moonsJson, dwarfsJson, smallMeta, smallBuf] = await Promise.all([
     fetchJson<{ moons: MoonRecord[] }>('data/moons.json'),
-    fetchJson<{ bodies: { epoch: number; a: number; e: number; i: number; om: number; w: number; ma: number }[] }>('data/dwarfs.json'),
+    fetchJson<{ bodies: { epoch: number; a: number; e: number; i: number; om: number; w: number; ma: number }[] }>(
+      'data/dwarfs.json',
+    ),
     fetchJson<SmallBodiesMeta>('data/smallbodies.json'),
     fetch('data/smallbodies.bin').then((r) => r.arrayBuffer()),
   ]);
@@ -76,10 +87,10 @@ export async function loadWorld(onProgress: (msg: string) => void): Promise<Worl
   const moonParent = new Uint32Array(moons.length);
   moons.forEach((m, k) => {
     const pole = m.frame !== 'ecliptic';
-    moonFlat.set([
-      pole ? 1 : 0, m.poleRa ?? 0, m.poleDec ?? 90, m.epoch, m.a, m.e, m.w, m.M, m.i, m.node,
-      m.P, m.Papsis, m.Pnode,
-    ], k * 13);
+    moonFlat.set(
+      [pole ? 1 : 0, m.poleRa ?? 0, m.poleDec ?? 90, m.epoch, m.a, m.e, m.w, m.M, m.i, m.node, m.P, m.Papsis, m.Pnode],
+      k * 13,
+    );
     moonParent[k] = PARENT_INDEX[m.parent];
   });
   const dwarfFlat = new Float64Array(dwarfsJson.bodies.flatMap((d) => [d.epoch, d.a, d.e, d.i, d.om, d.w, d.ma]));
@@ -92,9 +103,11 @@ export async function loadWorld(onProgress: (msg: string) => void): Promise<Worl
 
   const bodies: Body[] = [];
   SUN_AND_PLANETS.forEach((info, k) =>
-    bodies.push({ index: k, info, parent: 0, semiMajorKm: k === 0 ? 0 : PLANET_A_AU[k - 1] * AU, resolved: true }));
+    bodies.push({ index: k, info, parent: 0, semiMajorKm: k === 0 ? 0 : PLANET_A_AU[k - 1] * AU, resolved: true }),
+  );
   DWARFS.forEach((info, k) =>
-    bodies.push({ index: 9 + k, info, parent: 0, semiMajorKm: dwarfsJson.bodies[k].a * AU, resolved: true }));
+    bodies.push({ index: 9 + k, info, parent: 0, semiMajorKm: dwarfsJson.bodies[k].a * AU, resolved: true }),
+  );
   moons.forEach((m, k) => {
     const resolved = m.radius != null;
     bodies.push({
@@ -134,7 +147,7 @@ function shuffleRecords(data: Float32Array, stride: number): Float32Array {
   const out = new Float32Array(data.length);
   const idx = Array.from({ length: n }, (_, i) => i);
   let seed = 0x9e3779b9;
-  const rand = () => ((seed = (Math.imul(seed ^ (seed >>> 15), 0x2c1b3c6d) + 0x6d2b79f5) >>> 0) / 4294967296);
+  const rand = () => (seed = (Math.imul(seed ^ (seed >>> 15), 0x2c1b3c6d) + 0x6d2b79f5) >>> 0) / 4294967296;
   for (let i = n - 1; i > 0; i--) {
     const j = Math.floor(rand() * (i + 1));
     [idx[i], idx[j]] = [idx[j], idx[i]];
@@ -143,8 +156,28 @@ function shuffleRecords(data: Float32Array, stride: number): Float32Array {
   return out;
 }
 
-const EN = ['sun', 'mercury', 'venus', 'earth', 'mars', 'jupiter', 'saturn', 'uranus', 'neptune', 'ceres', 'pluto', 'eris', 'makemake', 'haumea'];
-export const norm = (s: string) => s.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().trim();
+const EN = [
+  'sun',
+  'mercury',
+  'venus',
+  'earth',
+  'mars',
+  'jupiter',
+  'saturn',
+  'uranus',
+  'neptune',
+  'ceres',
+  'pluto',
+  'eris',
+  'makemake',
+  'haumea',
+];
+export const norm = (s: string) =>
+  s
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+    .trim();
 
 /** Busca un cuerpo por nombre en español o inglés, con o sin tildes ("Plutón", "pluto", "pluton"). */
 export function findBody(world: World, name: string) {

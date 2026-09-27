@@ -43,6 +43,15 @@ export class Clock {
     this.paused = false;
   }
 
+  pause(): void {
+    if (this.mode === 'real') {
+      this.simMs = Date.now();
+      this.mode = 'sim';
+      this.speed = 1;
+    }
+    this.paused = true;
+  }
+
   togglePause(): void {
     if (this.mode === 'real') {
       this.simMs = Date.now();

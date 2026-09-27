@@ -1,5 +1,5 @@
 // Catálogo de texturas generado por scripts/build_textures.py (web/public/textures/manifest.json).
-import type { Body } from './data';
+import type { Body } from './world';
 
 export interface TextureFile {
   path: string;
@@ -26,7 +26,10 @@ export async function loadManifest(): Promise<TextureManifest> {
     if (f.body === 'earth' && !f.path.includes('/day-')) continue;
     const l = levels.get(f.body) ?? [];
     if (!l.includes(f.level)) l.push(f.level);
-    levels.set(f.body, l.sort((a, b) => a - b));
+    levels.set(
+      f.body,
+      l.sort((a, b) => a - b),
+    );
   }
   return manifest;
 }
@@ -40,7 +43,7 @@ const DWARF_KEYS: Record<number, string> = { 10: 'pluto' };
 
 /** Nombre de la carpeta de texturas del cuerpo, o null si no tiene (se dibuja procedural). */
 export function textureKey(b: Body): string | null {
-  const key = b.index < 9 ? PRIMARY_KEYS[b.index] : DWARF_KEYS[b.index] ?? b.jplName?.toLowerCase() ?? null;
+  const key = b.index < 9 ? PRIMARY_KEYS[b.index] : (DWARF_KEYS[b.index] ?? b.jplName?.toLowerCase() ?? null);
   return key && levels.has(key) ? key : null;
 }
 
@@ -48,7 +51,7 @@ export function textureKey(b: Body): string | null {
 export function pickLevel(key: string, quality: number): number {
   const l = levels.get(key) ?? [];
   const fit = l.filter((x) => x <= quality);
-  return fit.length ? fit[fit.length - 1] : l[0] ?? 1;
+  return fit.length ? fit[fit.length - 1] : (l[0] ?? 1);
 }
 
 export function texturePath(key: string, level: number, layer?: string): string {

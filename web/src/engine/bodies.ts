@@ -1,8 +1,8 @@
 import * as THREE from 'three';
-import type { Body } from './data';
+import type { Body } from '../data/world';
 import { cloudsShader, coronaShader, earthShader, ringShader, scatteringShader, sunShader } from './shaders';
 import { shadowUniforms, withShadows, type RingShadow } from './shadows';
-import { textureKey, texturePath } from './textures';
+import { textureKey, texturePath } from '../data/textures';
 
 export interface BodyView {
   body: Body;
@@ -78,23 +78,37 @@ export function createBodyView(b: Body, tex: Tex): BodyView {
 
   if (info.kind === 'star') {
     uniforms = { map: { value: tex(texturePath('sun', level)) }, time: { value: 0 } };
-    mesh = new THREE.Mesh(sphere, new THREE.ShaderMaterial({
-      uniforms, vertexShader: sunShader.vertex, fragmentShader: sunShader.fragment,
-    }));
-    const glow = new THREE.Sprite(new THREE.SpriteMaterial({
-      map: glowTexture(), blending: THREE.AdditiveBlending, depthWrite: false, transparent: true, opacity: 0.35,
-    }));
+    mesh = new THREE.Mesh(
+      sphere,
+      new THREE.ShaderMaterial({
+        uniforms,
+        vertexShader: sunShader.vertex,
+        fragmentShader: sunShader.fragment,
+      }),
+    );
+    const glow = new THREE.Sprite(
+      new THREE.SpriteMaterial({
+        map: glowTexture(),
+        blending: THREE.AdditiveBlending,
+        depthWrite: false,
+        transparent: true,
+        opacity: 0.35,
+      }),
+    );
     glow.scale.setScalar(info.radius * 9);
     root.add(glow);
     const CORONA = 7; // radios solares
-    const corona = new THREE.Mesh(new THREE.PlaneGeometry(2, 2), new THREE.ShaderMaterial({
-      uniforms: { size: { value: info.radius * CORONA }, extent: { value: CORONA }, time: uniforms.time },
-      vertexShader: coronaShader.vertex,
-      fragmentShader: coronaShader.fragment,
-      transparent: true,
-      depthWrite: false,
-      blending: THREE.AdditiveBlending,
-    }));
+    const corona = new THREE.Mesh(
+      new THREE.PlaneGeometry(2, 2),
+      new THREE.ShaderMaterial({
+        uniforms: { size: { value: info.radius * CORONA }, extent: { value: CORONA }, time: uniforms.time },
+        vertexShader: coronaShader.vertex,
+        fragmentShader: coronaShader.fragment,
+        transparent: true,
+        depthWrite: false,
+        blending: THREE.AdditiveBlending,
+      }),
+    );
     corona.frustumCulled = false;
     root.add(corona);
   } else if (info.name === 'Tierra') {
@@ -109,19 +123,30 @@ export function createBodyView(b: Body, tex: Tex): BodyView {
       cloudShift: { value: 0 },
     };
     Object.assign(uniforms, shadowUniforms, { shSelfId: { value: b.index } });
-    mesh = new THREE.Mesh(sphere, new THREE.ShaderMaterial({
-      uniforms, vertexShader: earthShader.vertex, fragmentShader: earthShader.fragment,
-    }));
-    const cloudMesh = new THREE.Mesh(sphere, new THREE.ShaderMaterial({
-      uniforms, vertexShader: cloudsShader.vertex, fragmentShader: cloudsShader.fragment,
-      transparent: true, depthWrite: false,
-    }));
+    mesh = new THREE.Mesh(
+      sphere,
+      new THREE.ShaderMaterial({
+        uniforms,
+        vertexShader: earthShader.vertex,
+        fragmentShader: earthShader.fragment,
+      }),
+    );
+    const cloudMesh = new THREE.Mesh(
+      sphere,
+      new THREE.ShaderMaterial({
+        uniforms,
+        vertexShader: cloudsShader.vertex,
+        fragmentShader: cloudsShader.fragment,
+        transparent: true,
+        depthWrite: false,
+      }),
+    );
     cloudMesh.scale.setScalar(1.004);
     mesh.add(cloudMesh);
     atmo = atmosphere('earth', 6378.1);
   } else {
     const shade = new THREE.Color(info.color);
-    if (b.info.kind === 'moon' && !key) shade.offsetHSL(0, 0, ((b.index * 37) % 11 - 5) / 60);
+    if (b.info.kind === 'moon' && !key) shade.offsetHSL(0, 0, (((b.index * 37) % 11) - 5) / 60);
     const mat = new THREE.MeshStandardMaterial({
       map: key ? tex(texturePath(key, level)) : null,
       color: key ? 0xffffff : shade,
@@ -160,7 +185,18 @@ export function createBodyView(b: Body, tex: Tex): BodyView {
     spin.add(thinRings(info.name === 'Urano' ? URANUS_RINGS : NEPTUNE_RINGS, uniforms, info.radius));
   }
   if (atmo) root.add(atmo.mesh);
-  return { body: b, root, spin, mesh, orientSlot: orientSlot(b), uniforms, ringShadow, texKey: key, texLevel: key ? level : 0, atmo };
+  return {
+    body: b,
+    root,
+    spin,
+    mesh,
+    orientSlot: orientSlot(b),
+    uniforms,
+    ringShadow,
+    texKey: key,
+    texLevel: key ? level : 0,
+    atmo,
+  };
 }
 
 /** Parámetros físicos de cada atmósfera (coeficientes por km, alturas de escala en km). */
@@ -186,17 +222,20 @@ function atmosphere(kind: AtmosphereKind, radius: number): { mesh: THREE.Mesh; u
     g: { value: a.g },
     sunI: { value: a.sunI },
   };
-  const m = new THREE.Mesh(sphere, new THREE.ShaderMaterial({
-    uniforms,
-    vertexShader: scatteringShader.vertex,
-    fragmentShader: scatteringShader.fragment,
-    transparent: true,
-    depthWrite: false,
-    // Composición física: luz dispersada + fondo × transmitancia (alfa premultiplicado)
-    blending: THREE.CustomBlending,
-    blendSrc: THREE.OneFactor,
-    blendDst: THREE.OneMinusSrcAlphaFactor,
-  }));
+  const m = new THREE.Mesh(
+    sphere,
+    new THREE.ShaderMaterial({
+      uniforms,
+      vertexShader: scatteringShader.vertex,
+      fragmentShader: scatteringShader.fragment,
+      transparent: true,
+      depthWrite: false,
+      // Composición física: luz dispersada + fondo × transmitancia (alfa premultiplicado)
+      blending: THREE.CustomBlending,
+      blendSrc: THREE.OneFactor,
+      blendDst: THREE.OneMinusSrcAlphaFactor,
+    }),
+  );
   // La esfera de la atmósfera cuelga de la raíz (sin la escala achatada del planeta)
   m.scale.setScalar(radius + a.top);
   m.userData.atmosphere = true;
@@ -209,11 +248,22 @@ const RING_OUTER = 136_775;
 
 // Radio (km), anchura (km) y opacidad relativa de los anillos principales (NASA/JPL)
 const URANUS_RINGS: [number, number, number][] = [
-  [41837, 1.5, 0.5], [42234, 2, 0.5], [42571, 2, 0.5], [44718, 2.5, 0.6], [45661, 3, 0.6],
-  [47176, 4, 0.7], [47627, 2, 0.6], [48300, 3, 0.7], [51149, 40, 1.0], [67300, 3000, 0.04],
+  [41837, 1.5, 0.5],
+  [42234, 2, 0.5],
+  [42571, 2, 0.5],
+  [44718, 2.5, 0.6],
+  [45661, 3, 0.6],
+  [47176, 4, 0.7],
+  [47627, 2, 0.6],
+  [48300, 3, 0.7],
+  [51149, 40, 1.0],
+  [67300, 3000, 0.04],
 ];
 const NEPTUNE_RINGS: [number, number, number][] = [
-  [41900, 2000, 0.06], [53200, 110, 0.6], [57200, 4000, 0.04], [62930, 50, 1.0],
+  [41900, 2000, 0.06],
+  [53200, 110, 0.6],
+  [57200, 4000, 0.04],
+  [62930, 50, 1.0],
 ];
 
 function ringTexture(rings: [number, number, number][], inner: number, outer: number): THREE.Texture {
@@ -239,7 +289,8 @@ function ringTexture(rings: [number, number, number][], inner: number, outer: nu
 }
 
 function thinRings(rings: [number, number, number][], u: Record<string, THREE.IUniform>, planetRadius: number) {
-  const inner = rings[0][0] - 3000, outer = rings[rings.length - 1][0] + 3000;
+  const inner = rings[0][0] - 3000,
+    outer = rings[rings.length - 1][0] + 3000;
   const mat = new THREE.ShaderMaterial({
     uniforms: {
       map: { value: ringTexture(rings, inner, outer) },

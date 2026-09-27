@@ -76,12 +76,17 @@ export async function createStars(pixelRatio: number): Promise<THREE.Points> {
   const col = new Float32Array(n * 3);
   const mag = new Float32Array(n);
   const c = new THREE.Color();
-  const so = Math.sin(OBLIQUITY), co = Math.cos(OBLIQUITY);
+  const so = Math.sin(OBLIQUITY),
+    co = Math.cos(OBLIQUITY);
   for (let i = 0; i < n; i++) {
-    const ra = data[i * 4], dec = data[i * 4 + 1];
+    const ra = data[i * 4],
+      dec = data[i * 4 + 1];
     // ICRS → eclíptica J2000 → escena (x, z, −y)
-    const x = Math.cos(dec) * Math.cos(ra), y = Math.cos(dec) * Math.sin(ra), z = Math.sin(dec);
-    const ey = co * y + so * z, ez = -so * y + co * z;
+    const x = Math.cos(dec) * Math.cos(ra),
+      y = Math.cos(dec) * Math.sin(ra),
+      z = Math.sin(dec);
+    const ey = co * y + so * z,
+      ez = -so * y + co * z;
     pos.set([x * SKY_RADIUS, ez * SKY_RADIUS, -ey * SKY_RADIUS], i * 3);
     mag[i] = data[i * 4 + 2];
     blackbody(temperature(data[i * 4 + 3]), c).toArray(col, i * 3);
@@ -90,14 +95,17 @@ export async function createStars(pixelRatio: number): Promise<THREE.Points> {
   geo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
   geo.setAttribute('color', new THREE.BufferAttribute(col, 3));
   geo.setAttribute('mag', new THREE.BufferAttribute(mag, 1));
-  const points = new THREE.Points(geo, new THREE.ShaderMaterial({
-    uniforms: { pixelRatio: { value: pixelRatio }, limit: { value: 7 } },
-    vertexShader: starShader.vertex,
-    fragmentShader: starShader.fragment,
-    transparent: true,
-    depthWrite: false,
-    blending: THREE.AdditiveBlending,
-  }));
+  const points = new THREE.Points(
+    geo,
+    new THREE.ShaderMaterial({
+      uniforms: { pixelRatio: { value: pixelRatio }, limit: { value: 7 } },
+      vertexShader: starShader.vertex,
+      fragmentShader: starShader.fragment,
+      transparent: true,
+      depthWrite: false,
+      blending: THREE.AdditiveBlending,
+    }),
+  );
   points.frustumCulled = false;
   points.renderOrder = -1;
   return points;

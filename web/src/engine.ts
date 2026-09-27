@@ -121,7 +121,14 @@ export class Engine {
     this.buildSmallBodies();
     this.buildLabels();
 
-    this.composer = new EffectComposer(this.renderer);
+    // Sin un render target multisample el postprocesado pierde el antialiasing del canvas
+    const pr = this.renderer.getPixelRatio();
+    const target = new THREE.WebGLRenderTarget(innerWidth * pr, innerHeight * pr, {
+      samples: Math.min(4, this.renderer.capabilities.maxSamples),
+      type: THREE.HalfFloatType,
+    });
+    this.composer = new EffectComposer(this.renderer, target);
+    this.composer.setPixelRatio(pr);
     this.composer.addPass(new RenderPass(this.scene, this.camera));
     this.bloom = new UnrealBloomPass(new THREE.Vector2(innerWidth, innerHeight), 0.7, 0.6, 1.0);
     this.composer.addPass(this.bloom);

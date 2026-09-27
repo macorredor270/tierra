@@ -13,6 +13,7 @@
 @layer base {
   html, body, #root { @apply h-full overflow-hidden bg-space text-slate-100 antialiased; }
   input[type="date"] { color-scheme: dark; }
+  * { scrollbar-width: thin; scrollbar-color: rgb(255 255 255 / 0.15) transparent; }
 }
 
 @utility glass {

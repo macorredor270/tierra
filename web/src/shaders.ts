@@ -224,7 +224,7 @@ export const pointsShader = {
       vec2 d = gl_PointCoord - 0.5;
       float r = length(d);
       if (r > 0.5) discard;
-      float a = smoothstep(0.5, 0.25, r);
+      float a = 1.0 - smoothstep(0.3, 0.5, r);
       gl_FragColor = vec4(vColor, a);
       #include <colorspace_fragment>
     }
@@ -247,7 +247,8 @@ export const smallShader = {
       vAlpha = visible[k];
       vec4 mv = modelViewMatrix * vec4(position, 1.0);
       gl_Position = projectionMatrix * mv;
-      gl_PointSize = (k == 5 ? 2.6 : 1.6) * pixelRatio * visible[k];
+      // 1 px más de margen para el borde suavizado
+      gl_PointSize = ((k == 5 ? 3.0 : 1.8) + 1.0) * pixelRatio * visible[k];
       #include <logdepthbuf_vertex>
     }
   `,
@@ -258,7 +259,10 @@ export const smallShader = {
     void main() {
       #include <logdepthbuf_fragment>
       if (vAlpha < 0.5) discard;
-      gl_FragColor = vec4(vColor, 0.75);
+      float r = length(gl_PointCoord - 0.5) * 2.0;
+      float a = 1.0 - smoothstep(0.35, 1.0, r);
+      if (a <= 0.01) discard;
+      gl_FragColor = vec4(vColor, a * 0.55);
       #include <colorspace_fragment>
     }
   `,

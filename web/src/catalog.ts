@@ -2,7 +2,7 @@
 // y "Planetary Satellite Physical Parameters" (ssd.jpl.nasa.gov/sats/phys_par/). El Sol: IAU 2015
 // (radio nominal) y NASA Sun Fact Sheet.
 
-export type Kind = 'star' | 'planet' | 'dwarf' | 'moon';
+export type Kind = 'star' | 'planet' | 'dwarf' | 'moon' | 'craft';
 
 export interface BodyInfo {
   name: string;

@@ -1,6 +1,7 @@
 import init, { Solar } from './wasm/astro_wasm.js';
 import { DWARFS, MOON_NAMES_ES, PARENT_INDEX, SUN_AND_PLANETS, type BodyInfo } from './catalog';
 import { loadManifest } from './textures';
+import { loadFleet, type Fleet, type Mission } from './spacecraft';
 
 export interface MoonRecord {
   name: string;
@@ -26,6 +27,8 @@ export interface Body {
   semiMajorKm: number;
   /** Tiene radio medido: se dibuja como esfera. */
   resolved: boolean;
+  /** Nave espacial (trayectoria de Horizons). */
+  mission?: Mission;
 }
 
 export interface SmallBodiesMeta {
@@ -43,6 +46,9 @@ export interface World {
   /** Registros de `smallbodies.bin` barajados: cualquier prefijo es una muestra representativa. */
   smallRecords: Float32Array;
   smallMeta: SmallBodiesMeta;
+  fleet: Fleet;
+  /** Índice del primer cuerpo que es una nave (las naves van al final de `bodies`). */
+  firstCraft: number;
 }
 
 const AU = 149_597_870.7;
@@ -56,7 +62,7 @@ async function fetchJson<T>(url: string): Promise<T> {
 
 export async function loadWorld(onProgress: (msg: string) => void): Promise<World> {
   onProgress('Iniciando motor WebAssembly');
-  const [wasm] = await Promise.all([init(), loadManifest()]);
+  const [wasm, , fleet] = await Promise.all([init(), loadManifest(), loadFleet()]);
   onProgress('Descargando elementos orbitales de JPL');
   const [moonsJson, dwarfsJson, smallMeta, smallBuf] = await Promise.all([
     fetchJson<{ moons: MoonRecord[] }>('data/moons.json'),
@@ -108,7 +114,18 @@ export async function loadWorld(onProgress: (msg: string) => void): Promise<Worl
       },
     });
   });
-  return { solar, memory: wasm.memory, bodies, smallClass, smallRecords: small, smallMeta };
+  const firstCraft = bodies.length;
+  fleet.missions.forEach((m, k) => {
+    bodies.push({
+      index: firstCraft + k,
+      parent: 0,
+      semiMajorKm: 0,
+      resolved: false,
+      mission: m,
+      info: { name: m.name, kind: 'craft', radius: 0.01, color: parseInt(m.color.slice(1), 16), description: m.description },
+    });
+  });
+  return { solar, memory: wasm.memory, bodies, smallClass, smallRecords: small, smallMeta, fleet, firstCraft };
 }
 
 /** Fisher-Yates con semilla fija: el mismo orden en cada carga. */

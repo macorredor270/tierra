@@ -4,7 +4,7 @@ import { MOON_NOTES } from '../catalog';
 import { duration, km, lightTime, mass, num } from '../format';
 import { creditFor, textureKey } from '../textures';
 
-const KIND: Record<string, string> = { star: 'Estrella', planet: 'Planeta', dwarf: 'Planeta enano', moon: 'Luna' };
+const KIND: Record<string, string> = { star: 'Estrella', planet: 'Planeta', dwarf: 'Planeta enano', moon: 'Luna', craft: 'Nave espacial' };
 
 function Rows({ rows, live }: { rows: [string, string | undefined][]; live?: boolean }) {
   const shown = rows.filter(([, v]) => v !== undefined);
@@ -35,7 +35,13 @@ export function InfoCard({ body, world, snap, onClose, onSelect }: Props) {
     ['Luz desde la Tierra', body.index !== 3 ? lightTime(snap.distEarthKm) : undefined],
     ['Velocidad orbital', Number.isFinite(snap.speedKms) ? `${num(snap.speedKms, 2)} km/s` : undefined],
   ];
-  const data: [string, string | undefined][] = [
+  const mi = body.mission;
+  const endDate = mi ? new Date((mi.jd0 + mi.step * (mi.count - 1) - 2440587.5) * 86400000).toISOString().slice(0, 10) : '';
+  const data: [string, string | undefined][] = mi ? [
+    ['Agencia', mi.agency],
+    ['Lanzamiento', mi.launch],
+    ['Trayectoria hasta', endDate],
+  ] : [
     ['Radio', `${num(i.radius, i.radius < 100 ? 1 : 0)} km`],
     ['Radio polar', i.polarRadius ? `${num(i.polarRadius, 0)} km` : undefined],
     ['Masa', i.massKg ? mass(i.massKg) : undefined],
@@ -65,7 +71,9 @@ export function InfoCard({ body, world, snap, onClose, onSelect }: Props) {
       <Rows rows={live} live />
       <Rows rows={data} />
       <p className="text-[11px] text-muted">
-        {body.jplName === 'Moon'
+        {mi
+          ? 'Trayectoria: JPL Horizons (vectores de estado interpolados con splines de Hermite).'
+          : body.jplName === 'Moon'
           ? 'Posición: teoría lunar de Meeus (ELP-2000/82), a pocos km de JPL Horizons. Radio: JPL Satellite Physical Parameters.'
           : m
           ? `Órbita: ${m.ephemeris} (JPL SSD). Radio: JPL Satellite Physical Parameters.`
@@ -75,7 +83,7 @@ export function InfoCard({ body, world, snap, onClose, onSelect }: Props) {
               ? 'Órbita: elementos keplerianos de JPL (Standish). Datos físicos: JPL Planetary Physical Parameters.'
               : 'Órbita: elementos osculantes de JPL Horizons. Datos físicos: JPL Planetary Physical Parameters.'}
         {' '}
-        {creditFor(textureKey(body)) ? `Imagen: ${creditFor(textureKey(body))}.` : 'Superficie procedural (sin mosaico global publicado).'}
+        {mi ? '' : creditFor(textureKey(body)) ? `Imagen: ${creditFor(textureKey(body))}.` : 'Superficie procedural (sin mosaico global publicado).'}
       </p>
     </article>
   );

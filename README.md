@@ -66,6 +66,14 @@ Las sombras se calculan en los shaders de forma analítica: el Sol es un disco d
 
 Para que los eclipses caigan en su sitio, la Luna se calcula con la teoría lunar de Meeus (ELP-2000/82 truncada): está a 3–10 km de su posición en Horizons, y el eclipse del 12 de agosto de 2026 sale con γ = 0,8977, el mismo valor que publica la NASA.
 
+## Naves espaciales
+
+Once misiones con su trayectoria real de JPL Horizons durante toda su vida útil: **Voyager 1 y 2, New Horizons, Parker Solar Probe, Juno, James Webb, Europa Clipper, Psyche, Lucy, BepiColombo y Cassini**. Los vectores de estado (posición y velocidad) se interpolan con splines de Hermite cúbicos: el perihelio de Parker de diciembre de 2024 sale a 6,863 millones de km del Sol, el valor oficial. Si eliges una nave fuera de las fechas de su misión, el reloj salta a la fecha válida más cercana.
+
+Plutón usa también una tabla de Horizons (1950–2100) en lugar de su órbita kepleriana, para que el sobrevuelo de New Horizons del 14 de julio de 2015 salga en su sitio: `?t=2015-07-14T11:30Z&focus=New%20Horizons&dist=60000`.
+
+Datos: `scripts/fetch_spacecraft.py` → `web/public/data/spacecraft.bin`.
+
 ## Enlaces compartibles
 
 La URL admite parámetros para abrir un momento concreto:

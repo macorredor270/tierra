@@ -1,0 +1,38 @@
+@import "tailwindcss";
+
+@theme {
+  --color-space: #02030a;
+  --color-accent: #7fc4ff;
+  --color-live: #ff4d5e;
+  --color-muted: #8a96b8;
+  --font-mono: ui-monospace, "SF Mono", "JetBrains Mono", Menlo, Consolas, monospace;
+  --animate-blink: blink 1.4s ease-in-out infinite;
+  @keyframes blink { 50% { opacity: 0.25; } }
+}
+
+@layer base {
+  html, body, #root { @apply h-full overflow-hidden bg-space text-slate-100 antialiased; }
+  input[type="date"] { color-scheme: dark; }
+}
+
+@utility glass {
+  @apply rounded-2xl border border-white/10 bg-slate-950/55 shadow-2xl shadow-black/40 backdrop-blur-xl;
+}
+
+/* Etiquetas que el motor coloca con transform cada frame (no pasan por React por rendimiento) */
+@layer components {
+  .label {
+    @apply pointer-events-auto absolute top-0 left-0 cursor-pointer whitespace-nowrap pl-3 pr-1.5 text-xs text-slate-200/90 transition-colors hover:text-white;
+    transform: translate(-9999px, 0);
+    text-shadow: 0 0 4px #000, 0 0 10px #000;
+    will-change: transform;
+  }
+  .label::before {
+    content: "";
+    @apply absolute top-1/2 left-0 h-px w-2;
+    background: var(--c);
+  }
+  .label.planet, .label.star { @apply text-[13px] font-medium tracking-wide; }
+  .label.moon { @apply text-[11px] text-slate-300/75; }
+  .label.minor { @apply text-[10px] text-slate-400/60; }
+}

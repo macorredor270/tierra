@@ -1,0 +1,33 @@
+{
+ "stride": 9,
+ "count": 83867,
+ "classes": {
+  "NEO": 0,
+  "MBA": 1,
+  "TROJAN": 2,
+  "OUTER": 3,
+  "TNO": 4,
+  "COMET": 5
+ },
+ "counts": {
+  "NEO": 50,
+  "MBA": 59081,
+  "TROJAN": 10175,
+  "OUTER": 5500,
+  "TNO": 7292,
+  "COMET": 1769
+ },
+ "layout": [
+  "a_au",
+  "e",
+  "i_deg",
+  "node_deg",
+  "peri_deg",
+  "M_deg",
+  "epoch_minus_J2000_days",
+  "H",
+  "class"
+ ],
+ "source": "JPL SBDB Query API",
+ "fetched": "2026-09-27"
+}

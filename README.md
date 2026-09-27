@@ -1,58 +1,53 @@
-<p align="center">
-  <img src="docs/banner.svg" alt="tierra: la Tierra y el sistema solar en WebGL, con shaders propios." width="100%">
-</p>
+# Sistema Solar en tiempo real
 
-<p align="center">
-  <img alt="Three.js" src="https://img.shields.io/badge/three.js-0.165-7fd4ff?style=flat-square">
-  <img alt="Sin build" src="https://img.shields.io/badge/sin%20build-HTML%20%2B%20ES%20Modules-7fd4ff?style=flat-square">
-</p>
+El sistema solar completo en el navegador, con las posiciones **reales** de cada cuerpo calculadas a partir de datos y métodos oficiales de NASA/JPL. El motor de efemérides está escrito en **Rust** y se compila a **WebAssembly**; el render usa **Three.js/WebGL** y la interfaz **React + Tailwind**.
 
----
+- **Tiempo real**: por defecto el instante es el de tu reloj, así que ves dónde está cada planeta y cada luna ahora mismo (y el lado nocturno de la Tierra es el que está de noche).
+- **Tiempo simulado**: ×1, ×5, ×20, ×100, ×1k… ×10M, marcha atrás, pausa y salto a cualquier fecha entre el 3000 a.C. y el 3000 d.C.
+- **Contenido**: el Sol, 8 planetas, 5 planetas enanos, 460 lunas, 83.867 asteroides, troyanos, centauros, transneptunianos y cometas periódicos.
+- **Filtros**: planetas, planetas enanos, lunas principales, lunas menores, órbitas, etiquetas y cada clase de cuerpo pequeño por separado.
+- **Escala real**: los tamaños y las distancias son los reales. Con profundidad logarítmica y origen flotante se puede ir de la superficie de Fobos a la órbita de Eris sin cortes ni temblores.
 
-Dos escenas en WebGL renderizadas con [Three.js](https://threejs.org), sin ningún paso de build:
-HTML plano + módulos ES cargados directamente desde CDN vía `importmap`. Clonar y abrir ya
-funciona.
+## Fuentes de datos
 
-## `index.html` — La Tierra
+| Qué | Fuente |
+|---|---|
+| Planetas | E.M. Standish, *Keplerian Elements for Approximate Positions of the Major Planets* (JPL SSD). Tabla 1 (1800–2050) y Tabla 2 (3000 a.C.–3000 d.C.) |
+| Lunas | JPL SSD *Planetary Satellite Mean Elements*; las 45 principales, refinadas con elementos osculantes de **JPL Horizons** y el movimiento medio ajustado a 2 años de vectores |
+| Planetas enanos | Elementos osculantes de JPL Horizons |
+| Asteroides y cometas | JPL **SBDB Query API** (numerados con H < 15, todos los TNO y los cometas con e < 1) |
+| Orientación de los ejes | IAU WGCCRE 2015 (Archinal et al. 2018) |
+| Datos físicos | JPL *Planetary Physical Parameters* y *Satellite Physical Parameters* |
 
-Un globo terráqueo con shaders propios (`js/shaders.js`): superficie día/noche con transición
-según el ángulo del sol, nubes independientes rotando a su propia velocidad, atmósfera con
-dispersión en los bordes (efecto Fresnel) y bloom de post-procesado
-(`EffectComposer` + `UnrealBloomPass`). Texturas de la NASA/Solar System Scope a 4K
-(`earth-day`, `earth-night`, `clouds`, `earth-topology` para el relieve).
+## Precisión (contra JPL Horizons / DE441)
 
-## `solar.html` — El sistema solar
+`cargo test` compara las posiciones calculadas con los vectores de Horizons:
 
-Los ocho planetas y la Luna, con tamaños **proporcionales a sus radios reales** y distancias
-orbitales comprimidas con una potencia (a escala real, Neptuno quedaría fuera de la pantalla por
-kilómetros de distancia — ver el comentario al principio de `js/solar.js`). Cámara orbital libre
-con `OrbitControls`.
-
-## Ejecutar
-
-Los módulos ES necesitan servirse por HTTP (no vale abrir el `.html` directo con `file://`):
-
-```bash
-python3 -m http.server 8000
-# abrir http://localhost:8000/index.html  o  /solar.html
-```
-
-Sin dependencias que instalar — Three.js y sus addons se cargan desde `cdn.jsdelivr.net` mediante
-el `importmap` que ya está en cada HTML.
+- Planetas, 1800–2050: menos de 0,02° en la mayoría de fechas; el peor caso es Saturno, con 0,17°.
+- Planetas, 1000 a.C.–2500 d.C.: por debajo de 0,32°.
+- Io, Titán y Tritón: por debajo de 0,2° entre 2024 y 2029. La Luna, con elementos medios: 2–3°.
 
 ## Estructura
 
 ```
-index.html / solar.html   las dos escenas
-css/                       estilos de cada una (loader, overlay)
-js/main.js                 escena de la Tierra: cámara, luces, postproceso, animación
-js/solar.js                escena del sistema solar: planetas, órbitas, escalas
-js/shaders.js               GLSL propio: tierra, atmósfera, nubes
-textures/                   texturas 2K/4K de planetas, lunas, estrellas y la propia Tierra
+crates/astro-core/   Rust: tiempo, Kepler, tablas JPL, marcos, rotación IAU, lunas, cuerpos pequeños
+crates/astro-wasm/   puente wasm-bindgen: estado de todo el sistema en buffers para JS
+scripts/fetch_data.py  descarga los datos de JPL (SSD, SBDB, Horizons)
+web/src/engine.ts    escena Three.js: origen flotante, vuelos de cámara, órbitas, marcadores
+web/src/shaders.ts   GLSL: Sol, Tierra día/noche, atmósferas, anillos con sombra
+web/src/ui/          React + Tailwind: barra de tiempo, filtros, ficha de cada cuerpo
+web/public/data/     datos de JPL ya descargados
 ```
 
-## Créditos de texturas
+## Ejecutar
 
-Texturas planetarias de dominio público / Creative Commons vía
-[Solar System Scope](https://www.solarsystemscope.com/textures/) y NASA Visible Earth. Sin
-afiliación con ninguno de los dos proyectos.
+Requisitos: Rust con el target `wasm32-unknown-unknown`, `wasm-pack` y Node 22.
+
+```bash
+npm install
+npm run dev        # compila el WASM y abre Vite
+cargo test         # valida las efemérides contra Horizons
+npm run data       # vuelve a descargar los datos de JPL (opcional)
+```
+
+Texturas planetarias: Solar System Scope (CC BY 4.0) y NASA Visible Earth. Este proyecto no está afiliado a NASA ni a JPL.

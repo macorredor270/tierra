@@ -5,6 +5,8 @@ const LOGDEPTH_VS_PARS = /* glsl */ `
   #include <common>
   #include <logdepthbuf_pars_vertex>
 `;
+import { shadowGLSL } from './shadows';
+
 const LOGDEPTH_FS_PARS = /* glsl */ `#include <logdepthbuf_pars_fragment>`;
 
 export const sunShader = {
@@ -81,6 +83,7 @@ export const earthShader = {
     varying vec2 vUv;
     varying vec3 vNormal;
     varying vec3 vWorldPos;
+    ${shadowGLSL}
 
     void main() {
       #include <logdepthbuf_fragment>
@@ -89,6 +92,9 @@ export const earthShader = {
       vec3 v = normalize(cameraPosition - vWorldPos);
       float ndl = dot(n, l);
       float day = smoothstep(-0.08, 0.12, ndl);
+      // Eclipse solar: la sombra de la Luna (umbra + penumbra) sobre la superficie
+      vec3 refr;
+      float sunVis = shSunVisibility(vWorldPos, refr);
 
       vec3 dayColor = texture2D(dayMap, vUv).rgb;
       vec3 nightColor = texture2D(nightMap, vUv).rgb;
@@ -96,13 +102,14 @@ export const earthShader = {
       // Sombra de las nubes sobre la superficie
       float cloud = texture2D(cloudsMap, vUv + vec2(cloudShift, 0.0)).r;
 
-      vec3 lit = dayColor * max(ndl, 0.0) * (1.0 - cloud * 0.35);
+      vec3 lit = dayColor * max(ndl, 0.0) * (1.0 - cloud * 0.35) * sunVis;
       // Brillo especular solo en el agua
       vec3 h = normalize(l + v);
-      lit += vec3(1.0, 0.95, 0.85) * pow(max(dot(n, h), 0.0), 180.0) * water * 0.55 * day;
+      lit += vec3(1.0, 0.95, 0.85) * pow(max(dot(n, h), 0.0), 180.0) * water * 0.55 * day * sunVis;
 
       vec3 night = nightColor * vec3(1.0, 0.8, 0.55) * 1.6 * (1.0 - cloud * 0.8);
-      vec3 color = mix(night, lit, day);
+      // En la umbra se ven las luces de las ciudades, como de noche
+      vec3 color = mix(night, lit, day * mix(0.15, 1.0, sunVis));
 
       // Luz rasante rojiza en el terminador
       color += vec3(0.9, 0.35, 0.1) * exp(-pow(ndl / 0.05, 2.0)) * 0.025 * (1.0 - cloud);
@@ -122,11 +129,13 @@ export const cloudsShader = {
     varying vec2 vUv;
     varying vec3 vNormal;
     varying vec3 vWorldPos;
+    ${shadowGLSL}
     void main() {
       #include <logdepthbuf_fragment>
       float c = texture2D(cloudsMap, vUv + vec2(cloudShift, 0.0)).r;
       float ndl = dot(normalize(vNormal), normalize(sunPos - vWorldPos));
-      float light = smoothstep(-0.15, 0.3, ndl);
+      vec3 refr;
+      float light = smoothstep(-0.15, 0.3, ndl) * shSunVisibility(vWorldPos, refr);
       gl_FragColor = vec4(vec3(1.0) * (0.04 + 0.96 * light), smoothstep(0.08, 0.95, c) * 0.92);
       #include <colorspace_fragment>
     }
@@ -143,13 +152,15 @@ export const atmosphereShader = {
     uniform float intensity;
     varying vec3 vNormal;
     varying vec3 vWorldPos;
+    ${shadowGLSL}
     void main() {
       #include <logdepthbuf_fragment>
       vec3 n = normalize(vNormal);
       vec3 v = normalize(cameraPosition - vWorldPos);
       vec3 l = normalize(sunPos - vWorldPos);
       float rim = pow(1.0 - abs(dot(n, v)), 4.0);
-      float sun = smoothstep(-0.3, 0.4, dot(n, l));
+      vec3 refr;
+      float sun = smoothstep(-0.3, 0.4, dot(n, l)) * shSunVisibility(vWorldPos, refr);
       // Hacia el Sol la luz que atraviesa el limbo se enrojece (Rayleigh)
       float forward = pow(max(dot(-v, l), 0.0), 8.0);
       vec3 c = mix(color, vec3(1.0, 0.55, 0.3), forward * 0.6);
@@ -181,18 +192,16 @@ export const ringShader = {
     uniform float planetRadius;
     varying vec3 vLocal;
     varying vec3 vWorldPos;
+    ${shadowGLSL}
     void main() {
       #include <logdepthbuf_fragment>
       float r = length(vLocal.xy);
       float t = (r - inner) / (outer - inner);
       if (t < 0.0 || t > 1.0) discard;
       vec4 tex = texture2D(map, vec2(t, 0.5));
-      // Sombra del planeta sobre los anillos: ¿corta el rayo hacia el Sol la esfera?
-      vec3 toSun = normalize(sunPos - vWorldPos);
-      vec3 oc = vWorldPos - planetPos;
-      float b = dot(oc, toSun);
-      float c = dot(oc, oc) - planetRadius * planetRadius;
-      float shadow = (b < 0.0 && b * b - c > 0.0) ? 0.08 : 1.0;
+      // Sombra del planeta sobre los anillos, con penumbra
+      vec3 refr;
+      float shadow = mix(0.06, 1.0, shSunVisibility(vWorldPos, refr));
       vec3 color = mix(vec3(0.62, 0.55, 0.45), vec3(0.95, 0.88, 0.74), tex.r) * shadow;
       gl_FragColor = vec4(color, tex.a * 0.95);
       #include <colorspace_fragment>

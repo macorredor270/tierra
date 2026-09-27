@@ -13,6 +13,7 @@ import { SMALL_CLASS_COLORS } from './catalog';
 import { detectHardware, initialGraphics, saveGraphics, type Graphics, type HardwareInfo } from './graphics';
 import { SmallPool } from './smallPool';
 import { createStars } from './stars';
+import { MAX_OCCLUDERS, shadowUniforms } from './shadows';
 
 export const AU = 149_597_870.7;
 const GM_SUN = 1.32712440018e11; // km³/s²
@@ -220,6 +221,24 @@ export class Engine {
     this.focus = index;
     this.controls.minDistance = b.info.radius * 1.08;
     this.emit(true);
+  }
+
+  /** Coloca la cámara en la dirección de otro cuerpo (por defecto el Sol: cara iluminada). */
+  viewFrom(index = 0, exact = false): void {
+    this.update(true);
+    const sun = new THREE.Vector3(...this.p(index)).sub(new THREE.Vector3(...this.p(this.focus))).normalize();
+    if (exact) {
+      const d = this.flight ? this.flight.toDist : this.camera.position.length();
+      this.camera.position.copy(sun.multiplyScalar(d));
+      if (this.flight) this.flight.fromDist = d;
+      return;
+    }
+    const up = new THREE.Vector3(0, 1, 0);
+    const side = new THREE.Vector3().crossVectors(sun, up).normalize();
+    const dir = sun.multiplyScalar(0.94).addScaledVector(side, 0.25).addScaledVector(up, 0.2).normalize();
+    const d = this.flight ? this.flight.toDist : this.camera.position.length();
+    this.camera.position.copy(dir.multiplyScalar(d));
+    if (this.flight) this.flight.fromDist = d;
   }
 
   overview(): void {
@@ -494,6 +513,8 @@ export class Engine {
       if (v.uniforms?.time) v.uniforms.time.value = performance.now() / 1000;
     }
 
+    this.updateShadows(sun);
+
     const now = performance.now();
     if (force || now - this.lastOrbitRefresh > 400) {
       this.lastOrbitRefresh = now;
@@ -534,6 +555,43 @@ export class Engine {
         this.smallPoints.position.set(0, 0, 0);
         this.stats.smallMs = performance.now() - t0;
       }
+    }
+  }
+
+  /**
+   * Ocultadores para las sombras: el sistema del cuerpo enfocado (planeta + sus lunas grandes).
+   * Fuera de él las sombras miden menos de un píxel, así que no se calculan.
+   */
+  private updateShadows(sun: V3): void {
+    const u = shadowUniforms;
+    u.shEnabled.value = this.graphics.shadows ? 1 : 0;
+    u.shSunPos.value.set(...sun);
+    const f = this.bodies[this.focus];
+    const root = f.info.kind === 'moon' ? f.parent : f.index;
+    const list: Body[] = [];
+    if (root !== 0) {
+      list.push(this.bodies[root]);
+      const moons = this.bodies
+        .filter((b) => b.parent === root && b.info.kind === 'moon' && b.resolved)
+        .sort((a, b) => b.info.radius - a.info.radius);
+      list.push(...moons.slice(0, MAX_OCCLUDERS - 1));
+    }
+    const fw = this.focusWorld;
+    list.forEach((b, k) => {
+      const i = b.index;
+      u.shOcc.value[k].set(this.pos[i * 3] - fw[0], this.pos[i * 3 + 1] - fw[1], this.pos[i * 3 + 2] - fw[2], b.info.radius);
+      u.shOccId.value[k] = i;
+      // Luz refractada por la atmósfera: la Luna se ve roja dentro de la sombra de la Tierra
+      u.shOccAtmo.value[k] = i === 3 ? 0.09 : b.jplName === 'Titan' ? 0.03 : 0;
+    });
+    u.shOccCount.value = list.length;
+
+    const saturn = this.views.get(6);
+    if (saturn?.ringShadow) {
+      const r = saturn.ringShadow.uniforms;
+      r.ringCenter.value.copy(saturn.root.position);
+      // El plano de los anillos es el ecuador: su normal es el eje y local del planeta
+      r.ringNormal.value.setFromMatrixColumn(saturn.spin.matrix, 1).normalize();
     }
   }
 

@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import type { Body } from './data';
 import { MOON_TEXTURES } from './catalog';
 import { atmosphereShader, cloudsShader, earthShader, ringShader, sunShader } from './shaders';
+import { shadowUniforms, withShadows, type RingShadow } from './shadows';
 
 export interface BodyView {
   body: Body;
@@ -13,6 +14,7 @@ export interface BodyView {
   /** Índice en el buffer de orientaciones de WASM, o −1 si no tiene datos IAU. */
   orientSlot: number;
   uniforms?: Record<string, THREE.IUniform>;
+  ringShadow?: RingShadow;
 }
 
 const sphere = new THREE.SphereGeometry(1, 96, 64);
@@ -63,6 +65,7 @@ export function createBodyView(b: Body, tex: Tex, earthQuality = 4): BodyView {
   const info = b.info;
   let mesh: THREE.Mesh;
   let uniforms: Record<string, THREE.IUniform> | undefined;
+  let ringShadow: RingShadow | undefined;
 
   if (info.kind === 'star') {
     uniforms = { map: { value: tex(info.texture!) }, time: { value: 0 } };
@@ -86,6 +89,7 @@ export function createBodyView(b: Body, tex: Tex, earthQuality = 4): BodyView {
       sunPos: { value: new THREE.Vector3() },
       cloudShift: { value: 0 },
     };
+    Object.assign(uniforms, shadowUniforms, { shSelfId: { value: b.index } });
     mesh = new THREE.Mesh(sphere, new THREE.ShaderMaterial({
       uniforms, vertexShader: earthShader.vertex, fragmentShader: earthShader.fragment,
     }));
@@ -95,7 +99,7 @@ export function createBodyView(b: Body, tex: Tex, earthQuality = 4): BodyView {
     }));
     cloudMesh.scale.setScalar(1.004);
     mesh.add(cloudMesh);
-    mesh.add(atmosphere(uniforms.sunPos, 0x6fb4ff, 1.035, 1.4));
+    mesh.add(atmosphere(uniforms.sunPos, 0x6fb4ff, 1.035, 1.4, b.index));
   } else {
     const file = info.texture ?? (b.jplName ? MOON_TEXTURES[b.jplName] : undefined);
     const shade = new THREE.Color(info.color);
@@ -107,11 +111,23 @@ export function createBodyView(b: Body, tex: Tex, earthQuality = 4): BodyView {
       metalness: 0,
     });
     mesh = new THREE.Mesh(b.info.kind === 'moon' && !file ? lowSphere : sphere, mat);
+    if (info.name === 'Saturno') {
+      ringShadow = {
+        uniforms: {
+          ringMap: { value: tex('2k_saturn_ring_alpha.png') },
+          ringCenter: { value: new THREE.Vector3() },
+          ringNormal: { value: new THREE.Vector3(0, 1, 0) },
+          ringInner: { value: RING_INNER },
+          ringOuter: { value: RING_OUTER },
+        },
+      };
+    }
+    withShadows(mat, b.index, { ring: ringShadow });
     if (info.name === 'Venus' || info.name === 'Marte') {
       uniforms = { sunPos: { value: new THREE.Vector3() } };
       mesh.add(info.name === 'Venus'
-        ? atmosphere(uniforms.sunPos, 0xffe2b0, 1.03, 1.2)
-        : atmosphere(uniforms.sunPos, 0xe8a27a, 1.02, 0.5));
+        ? atmosphere(uniforms.sunPos, 0xffe2b0, 1.03, 1.2, b.index)
+        : atmosphere(uniforms.sunPos, 0xe8a27a, 1.02, 0.5, b.index));
     }
   }
 
@@ -123,12 +139,12 @@ export function createBodyView(b: Body, tex: Tex, earthQuality = 4): BodyView {
     uniforms = { sunPos: { value: new THREE.Vector3() }, planetPos: { value: new THREE.Vector3() } };
     spin.add(saturnRings(tex, uniforms));
   }
-  return { body: b, root, spin, mesh, orientSlot: orientSlot(b), uniforms };
+  return { body: b, root, spin, mesh, orientSlot: orientSlot(b), uniforms, ringShadow };
 }
 
-function atmosphere(sunPos: THREE.IUniform, color: number, scale: number, intensity: number) {
+function atmosphere(sunPos: THREE.IUniform, color: number, scale: number, intensity: number, selfId: number) {
   const m = new THREE.Mesh(sphere, new THREE.ShaderMaterial({
-    uniforms: { sunPos, color: { value: new THREE.Color(color) }, intensity: { value: intensity } },
+    uniforms: { ...shadowUniforms, shSelfId: { value: selfId }, sunPos, color: { value: new THREE.Color(color) }, intensity: { value: intensity } },
     vertexShader: atmosphereShader.vertex,
     fragmentShader: atmosphereShader.fragment,
     transparent: true,
@@ -153,6 +169,9 @@ function saturnRings(tex: Tex, u: Record<string, THREE.IUniform>) {
       sunPos: u.sunPos,
       planetPos: u.planetPos,
       planetRadius: { value: 58_232 },
+      ...shadowUniforms,
+      // Los anillos no son una esfera: ningún ocultador se descarta como "propio"
+      shSelfId: { value: -2 },
     },
     vertexShader: ringShader.vertex,
     fragmentShader: ringShader.fragment,

@@ -12,6 +12,7 @@
 
 pub mod frames;
 pub mod kepler;
+pub mod moon_meeus;
 pub mod moons;
 pub mod planets;
 pub mod rotation;

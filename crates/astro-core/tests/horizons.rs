@@ -2,6 +2,7 @@
 //! `tests/fixtures/horizons.json`, generados con `scripts/fetch_data.py`.
 
 use astro_core::frames::{norm, sub};
+use astro_core::moon_meeus;
 use astro_core::moons::{MoonElements, RefPlane};
 use astro_core::planets::{earth_heliocentric_km, heliocentric_km, Planet};
 use serde_json::Value;
@@ -84,6 +85,21 @@ fn planetas_tabla2_3000ac_3000dc() {
 }
 
 #[test]
+fn luna_con_teoria_de_meeus() {
+    // Para los eclipses la Luna tiene que estar a pocas decenas de km de su posición real
+    let fx = load("tests/fixtures/horizons.json");
+    for s in fx["moons"]["301"].as_array().unwrap() {
+        let jd = s["jd_tdb"].as_f64().unwrap();
+        let ours = moon_meeus::geocentric_km(jd);
+        let truth = xyz(s);
+        let (ang, rel) = errors(ours, truth);
+        let km = norm(sub(ours, truth));
+        println!("luna Meeus {} → {:.4}° {:.4}% ({km:.0} km)", s["date"], ang, rel * 100.0);
+        assert!(ang < 0.01 && km < 100.0, "{}: {ang}° {km} km", s["date"]);
+    }
+}
+
+#[test]
 fn lunas_con_elementos_medios() {
     let fx = load("tests/fixtures/horizons.json");
     // Elementos medios (JPL avisa de que son descriptivos): toleramos unos grados
@@ -97,4 +113,23 @@ fn lunas_con_elementos_medios() {
             assert!(rel < 0.1, "luna {code} {}: {rel}", s["date"]);
         }
     }
+}
+
+#[test]
+fn eclipse_solar_2026_08_12() {
+    // NASA (Espenak): máximo a las 17:46:06 TD, gamma = 0.8977
+    use astro_core::frames::scale;
+    let jd = 2461265.0 + (17.0 + 46.0 / 60.0 + 6.0 / 3600.0) / 24.0 - 0.5;
+    let moon = moon_meeus::geocentric_km(jd);
+    let emb = heliocentric_km(Planet::EarthMoonBary, jd);
+    let earth = earth_heliocentric_km(emb, moon);
+    let sun = scale(earth, -1.0); // Sol visto desde la Tierra
+    let axis = sub(moon, sun);
+    let dir = scale(axis, 1.0 / norm(axis));
+    // Distancia mínima del eje Sol-Luna al centro de la Tierra
+    let t = -(moon[0] * dir[0] + moon[1] * dir[1] + moon[2] * dir[2]);
+    let closest = [moon[0] + dir[0] * t, moon[1] + dir[1] * t, moon[2] + dir[2] * t];
+    let gamma = norm(closest) / 6378.137;
+    println!("gamma = {gamma:.4}");
+    assert!((gamma - 0.8977).abs() < 0.02, "{gamma}");
 }

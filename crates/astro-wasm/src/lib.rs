@@ -5,6 +5,7 @@
 //! en kilómetros, heliocéntricas.
 
 use astro_core::frames::add;
+use astro_core::moon_meeus;
 use astro_core::moons::{MoonElements, RefPlane};
 use astro_core::planets::{earth_heliocentric_km, elements, Planet};
 use astro_core::rotation::{body_axes, Body};
@@ -143,23 +144,27 @@ impl Solar {
         for (k, p) in Planet::ALL.iter().enumerate() {
             self.ecl[1 + k] = elements(*p, jd).position();
         }
-        if let Some(m) = self.earth_moon {
-            let moon = self.moons[m].position(jd);
-            self.ecl[EARTH] = earth_heliocentric_km(self.ecl[EARTH], moon);
+        // La Luna con la teoría de Meeus (ELP-2000/82 truncada): precisión de eclipse
+        let moon_geo = moon_meeus::geocentric_km(jd);
+        if self.earth_moon.is_some() {
+            self.ecl[EARTH] = earth_heliocentric_km(self.ecl[EARTH], moon_geo);
         }
         for (k, d) in self.dwarfs.iter().enumerate() {
             self.ecl[FIRST_DWARF + k] = d.position(jd);
         }
         for (k, m) in self.moons.iter().enumerate() {
             let parent = self.ecl[self.moon_parent[k]];
-            self.ecl[FIRST_MOON + k] = add(parent, m.position(jd));
+            let rel = if Some(k) == self.earth_moon { moon_geo } else { m.position(jd) };
+            self.ecl[FIRST_MOON + k] = add(parent, rel);
         }
         for (k, v) in self.ecl.iter().enumerate() {
             let s = to_scene(*v);
             self.positions[k * 3..k * 3 + 3].copy_from_slice(&s);
         }
         for (k, b) in ORIENTED.iter().chain([Body::Moon].iter()).enumerate() {
-            self.write_axes(k, body_axes(*b, jd));
+            // La rotación terrestre sigue el tiempo universal (UT1 ≈ UTC), no el dinámico
+            let t = if *b == Body::Earth { jd_utc } else { jd };
+            self.write_axes(k, body_axes(*b, t));
         }
     }
 

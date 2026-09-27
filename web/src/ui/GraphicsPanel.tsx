@@ -120,6 +120,12 @@ export function GraphicsPanel({ engine, graphics, onChange, onClose }: { engine:
         </Row>
         <Toggle label="Filtrado anisótropo" hint="Texturas nítidas vistas de lado" checked={graphics.anisotropy} onChange={(v) => set({ anisotropy: v })} />
 
+        <Toggle
+          label="Sombras y eclipses"
+          hint="Umbra y penumbra reales: eclipses, lunas sobre planetas, anillos de Saturno"
+          checked={graphics.shadows}
+          onChange={(v) => set({ shadows: v })}
+        />
         <Toggle label="Resplandor (bloom)" checked={graphics.bloom} onChange={(v) => set({ bloom: v })} />
         {graphics.bloom && (
           <Row label="Intensidad del resplandor" hint={graphics.bloomStrength.toFixed(2)}>

@@ -64,7 +64,9 @@ export function InfoCard({ body, world, snap, onClose, onSelect }: Props) {
       <Rows rows={live} live />
       <Rows rows={data} />
       <p className="text-[11px] text-muted">
-        {m
+        {body.jplName === 'Moon'
+          ? 'Posición: teoría lunar de Meeus (ELP-2000/82), a pocos km de JPL Horizons. Radio: JPL Satellite Physical Parameters.'
+          : m
           ? `Órbita: ${m.ephemeris} (JPL SSD). Radio: JPL Satellite Physical Parameters.`
           : body.index === 0
             ? 'Datos: IAU 2015 / NASA Sun Fact Sheet.'

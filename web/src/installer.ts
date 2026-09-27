@@ -118,7 +118,7 @@ export class Installer {
     await Promise.all(Array.from({ length: CONCURRENCY }, worker));
     if (this.aborted) throw new Error('cancelado');
     // Datos del motor (efemérides, estrellas, asteroides) también offline
-    await cache.addAll(['data/moons.json', 'data/dwarfs.json', 'data/smallbodies.json', 'data/smallbodies.bin', 'data/stars.bin', 'data/stars.json', 'textures/manifest.json']);
+    await cache.addAll(['data/moons.json', 'data/dwarfs.json', 'data/smallbodies.json', 'data/smallbodies.bin', 'data/stars.bin', 'data/stars.json', 'data/spacecraft.json', 'data/spacecraft.bin', 'textures/manifest.json']);
     const state: InstallState = { quality: this.quality, files: files.length, bytes: total, date: new Date().toISOString() };
     localStorage.setItem(KEY, JSON.stringify(state));
     return state;

@@ -1,0 +1,149 @@
+{
+ "source": "JPL Horizons (VECTORS, eclíptica J2000, heliocéntrico, km y km/s)",
+ "fetched": "2026-09-27",
+ "stride": 6,
+ "missions": [
+  {
+   "id": -31,
+   "name": "Voyager 1",
+   "agency": "NASA/JPL",
+   "color": "#ffd479",
+   "description": "Lanzada en 1977, sobrevoló Júpiter (1979) y Saturno (1980). En 2012 cruzó la heliopausa: es el objeto humano más lejano y el primero en el espacio interestelar.",
+   "launch": "1977-09-06",
+   "jd0": 2443392.5,
+   "step": 3.0,
+   "count": 6979,
+   "offset": 0
+  },
+  {
+   "id": -32,
+   "name": "Voyager 2",
+   "agency": "NASA/JPL",
+   "color": "#ffb36b",
+   "description": "La única nave que ha visitado Urano (1986) y Neptuno (1989). Entró en el espacio interestelar en 2018.",
+   "launch": "1977-08-21",
+   "jd0": 2443376.5,
+   "step": 3.0,
+   "count": 6985,
+   "offset": 41874
+  },
+  {
+   "id": -98,
+   "name": "New Horizons",
+   "agency": "NASA/APL",
+   "color": "#9ad0ff",
+   "description": "Primera visita a Plutón (julio de 2015) y a Arrokoth (enero de 2019), el objeto más lejano explorado de cerca.",
+   "launch": "2006-01-20",
+   "jd0": 2453755.5,
+   "step": 2.0,
+   "count": 5287,
+   "offset": 83784
+  },
+  {
+   "id": -96,
+   "name": "Parker Solar Probe",
+   "agency": "NASA/APL",
+   "color": "#ff7b5c",
+   "description": "Atraviesa la corona solar: en su perihelio pasa a 6,9 millones de km del Sol a 190 km/s, el objeto más rápido construido.",
+   "launch": "2018-08-13",
+   "jd0": 2458343.5,
+   "step": 0.10000000009313226,
+   "count": 41591,
+   "offset": 115506
+  },
+  {
+   "id": -61,
+   "name": "Juno",
+   "agency": "NASA/JPL",
+   "color": "#c7a2ff",
+   "description": "En órbita polar de Júpiter desde 2016: estudia su interior, su campo magnético y sus auroras.",
+   "launch": "2011-08-06",
+   "jd0": 2455779.5,
+   "step": 1.0,
+   "count": 5263,
+   "offset": 365052
+  },
+  {
+   "id": -170,
+   "name": "James Webb",
+   "agency": "NASA/ESA/CSA",
+   "color": "#f4d35e",
+   "description": "Telescopio infrarrojo de 6,5 m en el punto L2 Sol-Tierra, a 1,5 millones de km de la Tierra.",
+   "launch": "2021-12-26",
+   "jd0": 2459574.5,
+   "step": 1.0,
+   "count": 3557,
+   "offset": 396630
+  },
+  {
+   "id": -159,
+   "name": "Europa Clipper",
+   "agency": "NASA/JPL",
+   "color": "#7ee0c3",
+   "description": "Rumbo a Júpiter (llegada en 2030) para estudiar si el océano bajo el hielo de Europa podría albergar vida.",
+   "launch": "2024-10-15",
+   "jd0": 2460598.5,
+   "step": 1.0,
+   "count": 3366,
+   "offset": 417972
+  },
+  {
+   "id": -255,
+   "name": "Psyche",
+   "agency": "NASA/JPL",
+   "color": "#b9c4d6",
+   "description": "Viaja hacia (16) Psyche, un asteroide metálico que podría ser el núcleo de un protoplaneta. Llegada en 2029.",
+   "launch": "2023-10-14",
+   "jd0": 2460231.5,
+   "step": 1.0,
+   "count": 1948,
+   "offset": 438168
+  },
+  {
+   "id": -49,
+   "name": "Lucy",
+   "agency": "NASA/SwRI",
+   "color": "#ff9ecf",
+   "description": "Primera misión a los asteroides troyanos de Júpiter, restos de la formación de los planetas.",
+   "launch": "2021-10-17",
+   "jd0": 2459504.5,
+   "step": 1.0,
+   "count": 4186,
+   "offset": 449856
+  },
+  {
+   "id": -121,
+   "name": "BepiColombo",
+   "agency": "ESA/JAXA",
+   "color": "#8fd3ff",
+   "description": "Misión conjunta a Mercurio: entra en órbita a finales de 2026 tras seis sobrevuelos del planeta.",
+   "launch": "2018-10-21",
+   "jd0": 2458412.5,
+   "step": 0.5,
+   "count": 6189,
+   "offset": 474972
+  },
+  {
+   "id": -82,
+   "name": "Cassini",
+   "agency": "NASA/ESA/ASI",
+   "color": "#e8c07a",
+   "description": "Estudió Saturno, sus anillos y sus lunas durante 13 años; terminó sumergiéndose en su atmósfera en 2017.",
+   "launch": "1997-10-16",
+   "jd0": 2450737.5,
+   "step": 1.0,
+   "count": 7275,
+   "offset": 512106
+  }
+ ],
+ "tracks": [
+  {
+   "id": "9",
+   "body": 10,
+   "jd0": 2433282.5,
+   "step": 5.0,
+   "count": 10958,
+   "offset": 555756
+  }
+ ]
+}

@@ -95,7 +95,7 @@ export function Sidebar({ engine, world, focus, layers, onLayers, onSelect }: Pr
         {results.length > 0 && (
           <div className="glass absolute inset-x-0 top-10 z-20 max-h-72 overflow-auto p-1">
             {results.map((b) => (
-              row(b, b.info.kind === 'moon' ? `luna de ${bodies[b.parent].info.name}` : b.info.kind === 'dwarf' ? 'planeta enano' : '')
+              row(b, b.info.kind === 'moon' ? `luna de ${bodies[b.parent].info.name}` : b.info.kind === 'dwarf' ? 'planeta enano' : b.mission ? b.mission.agency : '')
             ))}
           </div>
         )}
@@ -105,11 +105,12 @@ export function Sidebar({ engine, world, focus, layers, onLayers, onSelect }: Pr
         {group('ESTRELLA', [bodies[0]])}
         {group('PLANETAS', bodies.slice(1, 9))}
         {group('PLANETAS ENANOS', bodies.slice(9, 14))}
+        {group('NAVES ESPACIALES', bodies.slice(world.firstCraft))}
       </div>
 
       <details className="max-h-[42vh] overflow-auto text-[13px]" open>
         <summary className="mb-1.5 cursor-pointer text-[10px] font-semibold tracking-[0.16em] text-muted">FILTROS</summary>
-        {([['planets', 'Planetas'], ['dwarfs', 'Planetas enanos'], ['moons', 'Lunas principales'], ['minorMoons', 'Lunas menores'], ['orbits', 'Órbitas'], ['labels', 'Etiquetas']] as const).map(([k, label]) => (
+        {([['planets', 'Planetas'], ['crafts', 'Naves espaciales'], ['dwarfs', 'Planetas enanos'], ['moons', 'Lunas principales'], ['minorMoons', 'Lunas menores'], ['orbits', 'Órbitas'], ['labels', 'Etiquetas']] as const).map(([k, label]) => (
           <label key={k} className="flex cursor-pointer items-center gap-2 py-0.5">
             <input type="checkbox" className="accent-sky-400" checked={layers[k]} onChange={() => toggle(k)} /> {label}
           </label>

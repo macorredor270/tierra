@@ -16,6 +16,7 @@ import { createStars } from './stars';
 import { createSmallGpu, type SmallGpu } from './smallGpu';
 import { MAX_OCCLUDERS, shadowUniforms } from './shadows';
 import { pickLevel, texturePath } from './textures';
+import { clampToMission, missionPath, missionState } from './spacecraft';
 
 export const AU = 149_597_870.7;
 const GM_SUN = 1.32712440018e11; // km³/s²
@@ -24,6 +25,7 @@ const ORBIT_POINTS_MOON = 180;
 
 export interface Layers {
   planets: boolean;
+  crafts: boolean;
   dwarfs: boolean;
   moons: boolean;
   orbits: boolean;
@@ -70,7 +72,7 @@ interface Flight {
 export class Engine {
   readonly clock = new Clock();
   readonly bodies: Body[];
-  layers: Layers = { planets: true, dwarfs: true, moons: true, orbits: true, labels: true, minorMoons: true, small: [true, true, true, true, true, true] };
+  layers: Layers = { planets: true, crafts: true, dwarfs: true, moons: true, orbits: true, labels: true, minorMoons: true, small: [true, true, true, true, true, true] };
   focus = 0;
   readonly hw: HardwareInfo;
   graphics: Graphics;
@@ -90,6 +92,11 @@ export class Engine {
   private pos: Float64Array = new Float64Array(0);
   private flight: Flight | null = null;
   private orbitLines: { body: Body; line: THREE.LineLoop }[] = [];
+  private craftPaths: { body: Body; line: THREE.Line }[] = [];
+  /** Velocidad heliocéntrica de cada nave (km/s); NaN si no está activa. */
+  private craftSpeed = new Map<number, number>();
+  private tmpP = new Float64Array(3);
+  private tmpV = new Float64Array(3);
   private lastOrbitRefresh = -Infinity;
   private markers!: THREE.Points;
   private smallPoints!: THREE.Points;
@@ -211,6 +218,11 @@ export class Engine {
   /** Viaja al cuerpo y lo sigue. */
   focusOn(index: number, distance?: number, animate = true): void {
     const b = this.bodies[index];
+    // Una nave fuera de su misión: se salta a la fecha válida más cercana
+    if (b.mission && !this.craftActive(index)) {
+      this.clock.jumpTo(clampToMission(b.mission, this.clock.ms));
+      this.update(true);
+    }
     const target = distance ?? this.defaultDistance(b);
     const fromDist = this.camera.position.length();
     this.flight = {
@@ -354,12 +366,18 @@ export class Engine {
     if (k === 'planet') return !this.layers.planets;
     if (k === 'dwarf') return !this.layers.dwarfs;
     if (k === 'moon') return b.resolved ? !this.layers.moons : !this.layers.minorMoons;
+    if (k === 'craft') return !this.layers.crafts;
     return false;
   }
 
   // ─────────────────────────── construcción ───────────────────────────
 
+  private craftActive(i: number): boolean {
+    return Number.isFinite(this.pos[i * 3]);
+  }
+
   private defaultDistance(b: Body): number {
+    if (b.mission) return 4e6;
     if (b.index === 0) return 4 * AU;
     return Math.max(b.info.radius * (b.info.kind === 'moon' ? 6 : 4.5), 30);
   }
@@ -367,6 +385,15 @@ export class Engine {
   private buildOrbits(): void {
     for (const b of this.bodies) {
       if (b.index === 0) continue;
+      if (b.mission) {
+        const geo = new THREE.BufferGeometry();
+        geo.setAttribute('position', new THREE.BufferAttribute(missionPath(this.world.fleet, b.mission), 3));
+        const line = new THREE.Line(geo, new THREE.LineBasicMaterial({ color: b.info.color, transparent: true, opacity: 0.35, depthWrite: false }));
+        line.frustumCulled = false;
+        this.scene.add(line);
+        this.craftPaths.push({ body: b, line });
+        continue;
+      }
       const n = b.info.kind === 'moon' ? ORBIT_POINTS_MOON : ORBIT_POINTS_PLANET;
       const geo = new THREE.BufferGeometry();
       geo.setAttribute('position', new THREE.BufferAttribute(new Float32Array(n * 3), 3));
@@ -493,7 +520,32 @@ export class Engine {
     const ms = this.clock.ms;
     const jd = Solar.jd_from_unix_ms(ms);
     this.solar.update(jd);
-    this.pos = this.solar.positions();
+    const wasmPos = this.solar.positions();
+    if (this.pos.length !== this.bodies.length * 3) this.pos = new Float64Array(this.bodies.length * 3);
+    this.pos.set(wasmPos);
+    const jdTdb = jd + 69.184 / 86400;
+    // Efemérides tabuladas (Plutón): se sustituye su posición y se desplazan sus lunas con él
+    for (const tr of this.world.fleet.tracks) {
+      if (!missionState(this.world.fleet, tr, jdTdb, this.tmpP, this.tmpV)) continue;
+      const k = tr.body * 3;
+      const dx = this.tmpP[0] - this.pos[k], dy = this.tmpP[1] - this.pos[k + 1], dz = this.tmpP[2] - this.pos[k + 2];
+      for (const b of this.bodies) {
+        if (b.index !== tr.body && b.parent !== tr.body) continue;
+        this.pos[b.index * 3] += dx;
+        this.pos[b.index * 3 + 1] += dy;
+        this.pos[b.index * 3 + 2] += dz;
+      }
+    }
+    for (let i = this.world.firstCraft; i < this.bodies.length; i++) {
+      const m = this.bodies[i].mission!;
+      if (missionState(this.world.fleet, m, jdTdb, this.tmpP, this.tmpV)) {
+        this.pos.set(this.tmpP, i * 3);
+        this.craftSpeed.set(i, Math.hypot(this.tmpV[0], this.tmpV[1], this.tmpV[2]));
+      } else {
+        this.pos.fill(NaN, i * 3, i * 3 + 3);
+        this.craftSpeed.set(i, NaN);
+      }
+    }
 
     // Vuelo: el foco se desliza del punto de partida al cuerpo (que sigue moviéndose) y la
     // distancia se interpola en escala logarítmica.
@@ -552,6 +604,11 @@ export class Engine {
       this.lastOrbitRefresh = now;
       this.refreshOrbits();
     }
+    for (const { body, line } of this.craftPaths) {
+      line.position.set(-fw[0], -fw[1], -fw[2]);
+      line.visible = this.layers.crafts && this.layers.orbits;
+      (line.material as THREE.LineBasicMaterial).opacity = body.index === this.focus ? 0.8 : 0.3;
+    }
     for (const { body, line } of this.orbitLines) {
       const par = body.parent;
       line.position.set(this.pos[par * 3] - fw[0], this.pos[par * 3 + 1] - fw[1], this.pos[par * 3 + 2] - fw[2]);
@@ -560,9 +617,11 @@ export class Engine {
     const mp = this.markers.geometry.getAttribute('position') as THREE.BufferAttribute;
     const arr = mp.array as Float32Array;
     for (let i = 0; i < this.bodies.length; i++) {
-      arr[i * 3] = this.pos[i * 3] - fw[0];
-      arr[i * 3 + 1] = this.pos[i * 3 + 1] - fw[1];
-      arr[i * 3 + 2] = this.pos[i * 3 + 2] - fw[2];
+      // Naves fuera de su misión: sin posición (el marcador ya tiene tamaño 0)
+      const ok = Number.isFinite(this.pos[i * 3]);
+      arr[i * 3] = ok ? this.pos[i * 3] - fw[0] : 0;
+      arr[i * 3 + 1] = ok ? this.pos[i * 3 + 1] - fw[1] : 0;
+      arr[i * 3 + 2] = ok ? this.pos[i * 3 + 2] - fw[2] : 0;
     }
     mp.needsUpdate = true;
 
@@ -603,7 +662,7 @@ export class Engine {
     u.shEnabled.value = this.graphics.shadows ? 1 : 0;
     u.shSunPos.value.set(...sun);
     const f = this.bodies[this.focus];
-    const root = f.info.kind === 'moon' ? f.parent : f.index;
+    const root = f.info.kind === 'moon' ? f.parent : f.mission ? 0 : f.index;
     const list: Body[] = [];
     if (root !== 0) {
       list.push(this.bodies[root]);
@@ -649,8 +708,8 @@ export class Engine {
       const parentSep = b.parent || b.info.kind === 'moon' ? (sep(i, b.parent) / dist(b.parent)) * this.pxPerRad : Infinity;
       const minorHidden = this.hidden(b);
       const visible = !minorHidden && (parentSep > 10 || i === this.focus);
-      show[i] = visible;
-      const base = b.info.kind === 'star' ? 9 : b.info.kind === 'planet' ? 6 : b.info.kind === 'dwarf' ? 5 : b.resolved ? 4 : 2.5;
+      show[i] = visible && Number.isFinite(d);
+      const base = b.info.kind === 'star' ? 9 : b.info.kind === 'planet' ? 6 : b.info.kind === 'dwarf' || b.mission ? 5 : b.resolved ? 4 : 2.5;
       sizes.setX(i, visible && apparent < 2.5 ? base : 0);
       const v = this.views.get(i);
       if (v) v.root.visible = !minorHidden && apparent > 0.3;
@@ -708,7 +767,9 @@ export class Engine {
     const r = Math.hypot(...p);
     const b = this.bodies[i];
     // Velocidad heliocéntrica por la ecuación vis-viva (planetas y enanos)
-    const speedKms = b.parent === 0 && b.semiMajorKm > 0 ? Math.sqrt(GM_SUN * (2 / r - 1 / b.semiMajorKm)) : NaN;
+    const speedKms = b.mission
+      ? this.craftSpeed.get(i) ?? NaN
+      : b.parent === 0 && b.semiMajorKm > 0 ? Math.sqrt(GM_SUN * (2 / r - 1 / b.semiMajorKm)) : NaN;
     return {
       ms: this.clock.ms,
       mode: this.clock.mode,
